@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketBox - Đặt vé sự kiện trực tuyến</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+        }
+        .event-card {
+            transition: transform 0.2s;
+        }
+        .event-card:hover {
+            transform: translateY(-4px);
+        }
+        .search-input::placeholder {
+            color: #666;
+        }
+        .nav-button {
+            background: rgba(0, 0, 0, 0.3);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: background 0.2s;
+        }
+        .nav-button:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .slider-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+            opacity: 0.5;
+            transition: all 0.2s;
+        }
+        .slider-dot.active {
+            background: #00B14F;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="bg-[#00B14F] py-2 fixed w-full top-0 z-50">
+        <div class="container mx-auto px-4 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="#" class="text-white text-2xl font-bold tracking-tight">ticketbox</a>
+                <div class="relative flex items-center bg-white rounded-lg">
+                    <input type="text" 
+                           placeholder="Bạn tìm gì hôm nay?" 
+                           class="search-input w-[400px] px-4 py-2 rounded-lg text-sm border-none outline-none" />
+                    <button class="absolute right-3 text-[#00B14F] font-medium text-sm">
+                        Tìm kiếm
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button class="px-6 py-1.5 border-2 border-white rounded-lg text-white hover:bg-white hover:text-[#00B14F] text-sm font-medium transition duration-200">
+                    Tạo sự kiện
+                </button>
+                <a href="#" class="text-white text-sm flex items-center gap-2 hover:opacity-80 transition duration-200">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm2-2v10h12V4H4zm3 4a1 1 0 100 2h6a1 1 0 100-2H7z"/>
+                    </svg>
+                    Vé đã mua
+                </a>
+                <div class="flex items-center gap-2 text-white">
+                    <span class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-sm font-medium">B</span>
+                    <span class="text-sm">Tài khoản</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-6 h-4 bg-red-600 flex items-center justify-center">
+                        <span class="text-yellow-400 text-xs">★</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Category Menu -->
+    <div class="bg-black text-white mt-[60px]">
+        <div class="container mx-auto px-4">
+            <ul class="flex gap-8 py-3 text-sm">
+                <li><a href="#" class="hover:text-[#00B14F] transition duration-200">Nhạc sống</a></li>
+                <li><a href="#" class="hover:text-[#00B14F] transition duration-200">Sân khấu & Nghệ thuật</a></li>
+                <li><a href="#" class="hover:text-[#00B14F] transition duration-200">Thể Thao</a></li>
+                <li><a href="#" class="hover:text-[#00B14F] transition duration-200">Khác</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Featured Events Slider -->
+    <div class="container mx-auto px-4 mt-6">
+        <div class="relative">
+            <!-- Slider dots -->
+            <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
+                <button class="slider-dot active"></button>
+                <button class="slider-dot"></button>
+                <button class="slider-dot"></button>
+                <button class="slider-dot"></button>
+            </div>
+
+            <div class="flex gap-4 overflow-hidden">
+                <!-- Event Card 1 -->
+                <div class="min-w-[600px] h-[300px] relative rounded-xl overflow-hidden bg-gray-100">
+                    <img src="https://placehold.co/600x300/00B14F/FFFFFF/webp?text=2024+The+New+Year+Of+Hope" 
+                         alt="2024 The New Year Of Hope" 
+                         class="w-full h-full object-cover"/>
+                    <div class="absolute bottom-6 left-6">
+                        <button class="bg-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition duration-200">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Event Card 2 -->
+                <div class="min-w-[600px] h-[300px] relative rounded-xl overflow-hidden bg-gray-100">
+                    <img src="https://placehold.co/600x300/6C5CE7/FFFFFF/webp?text=LY+MUSES" 
+                         alt="LY MUSES" 
+                         class="w-full h-full object-cover"/>
+                    <div class="absolute bottom-6 left-6">
+                        <button class="bg-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition duration-200">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Slider Navigation -->
+            <button class="nav-button absolute left-4 top-1/2 transform -translate-y-1/2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <button class="nav-button absolute right-4 top-1/2 transform -translate-y-1/2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Special Events Section -->
+    <div class="container mx-auto px-4 mt-8 pb-8">
+        <h2 class="text-xl font-bold mb-4">Sự kiện đặc biệt</h2>
+        <div class="grid grid-cols-5 gap-4">
+            <!-- Event Card 1 -->
+            <div class="event-card bg-white rounded-xl overflow-hidden shadow-sm">
+                <img src="https://placehold.co/400x300/6C5CE7/FFFFFF/webp?text=LY+MUSES" 
+                     alt="LY MUSES" 
+                     class="w-full h-48 object-cover"/>
+                <div class="p-3">
+                    <h3 class="font-semibold text-sm">LY MUSES</h3>
+                    <p class="text-xs text-gray-600 mt-1">1ST FANMEETING IN VIETNAM</p>
+                </div>
+            </div>
+
+            <!-- Event Card 2 -->
+            <div class="event-card bg-white rounded-xl overflow-hidden shadow-sm">
+                <img src="https://placehold.co/400x300/FF7675/FFFFFF/webp?text=Giai+Điệu+Hoàng+Hôn" 
+                     alt="Giai Điệu Hoàng Hôn" 
+                     class="w-full h-48 object-cover"/>
+                <div class="p-3">
+                    <h3 class="font-semibold text-sm">Giai Điệu Hoàng Hôn</h3>
+                    <p class="text-xs text-gray-600 mt-1">Lân Nhã - Hà Nhi - Tăng Phúc</p>
+                </div>
+            </div>
+
+            <!-- Event Card 3 -->
+            <div class="event-card bg-white rounded-xl overflow-hidden shadow-sm">
+                <img src="https://placehold.co/400x300/00B894/FFFFFF/webp?text=HYPE+FEST" 
+                     alt="HYPE FEST" 
+                     class="w-full h-48 object-cover"/>
+                <div class="p-3">
+                    <h3 class="font-semibold text-sm">HYPE FEST</h3>
+                    <p class="text-xs text-gray-600 mt-1">Music Festival</p>
+                </div>
+            </div>
+
+            <!-- Event Card 4 -->
+            <div class="event-card bg-white rounded-xl overflow-hidden shadow-sm">
+                <img src="https://placehold.co/400x300/FFA502/FFFFFF/webp?text=TEEN+TALK+CONCERT" 
+                     alt="TEEN TALK CONCERT" 
+                     class="w-full h-48 object-cover"/>
+                <div class="p-3">
+                    <h3 class="font-semibold text-sm">TEEN TALK CONCERT</h3>
+                    <p class="text-xs text-gray-600 mt-1">3rd Anniversary Special Show</p>
+                </div>
+            </div>
+
+            <!-- Event Card 5 -->
+            <div class="event-card bg-white rounded-xl overflow-hidden shadow-sm">
+                <img src="https://placehold.co/400x300/2E86DE/FFFFFF/webp?text=OBITCS" 
+                     alt="OBITCS" 
+                     class="w-full h-48 object-cover"/>
+                <div class="p-3">
+                    <h3 class="font-semibold text-sm">OBITCS</h3>
+                    <p class="text-xs text-gray-600 mt-1">Live in Concert</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
