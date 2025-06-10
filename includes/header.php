@@ -5,6 +5,8 @@ require_once "../config.php";
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://cdn.lordicon.com/lordicon.js"></script>
+
 
 <nav class="navbar navbar-expand-lg ">
     <div class="container d-flex align-items-center justify-content-between">
@@ -68,13 +70,10 @@ require_once "../config.php";
 </nav>
 <div class="sub-navbar">
     <ul class="sub-nav-list">
-        <li><a href="#">Vé ca nhạc</a></li>
-        <li><a href="#">Văn hóa nghệ thuật</a></li>
-        <li><a href="#">Du lịch</a></li>
-        <li><a href="#">Workshop</a></li>
-        <li><a href="#">Vé xem phim</a></li>
-        <li><a href="#">Vé tham quan</a></li>
-        <li><a href="#">Thể thao</a></li>
-        <li><a href="#">Tin tức</a></li>
+        <li><a href="../pages/event_type.php?event_type=<?php echo urlencode('all'); ?>">Tất cả</a></li>
+        <li><a href="../pages/event_type.php?event_type=<?php echo urlencode('music'); ?>">Âm nhạc</a></li>
+        <li><a href="../pages/event_type.php?event_type=<?php echo urlencode('art'); ?>">Văn hóa nghệ thuật</a></li>
+        <li><a href="../pages/event_type.php?event_type=<?php echo urlencode('visit'); ?>">Tham quan</a></li>
+        <li><a href="../pages/event_type.php?event_type=<?php echo urlencode('tournament'); ?>">Giải đấu</a></li>
     </ul>
 </div>

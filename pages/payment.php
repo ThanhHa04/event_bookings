@@ -22,6 +22,23 @@ if (!$event) {
     echo "Lỗi: Sự kiện không tồn tại.";
     exit();
 }
+
+
+if (!isset($_SESSION["booking"])) {
+    die("Không có dữ liệu đặt vé.");
+}
+
+$booking = $_SESSION["booking"];
+$event_id = $booking["event_id"];
+
+// Lấy danh sách ghế của sự kiện (sắp đúng thứ tự)
+$stmt = $pdo->prepare("
+    SELECT * FROM seats 
+    WHERE event_id = ? 
+    ORDER BY LEFT(seat_number, 1), CAST(SUBSTRING(seat_number, 2) AS UNSIGNED)
+");
+$stmt->execute([$event_id]);
+$seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -34,32 +51,41 @@ if (!$event) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/payment.css">
+    <link rel="stylesheet" href="../assets/css/seat.css">
 </head>
 <body>
 
 <?php include "../includes/header.php"; ?>
+<div class="detail-wrapper">
+  <div class="detail-left">
+    <h1 class="event-title"><?= htmlspecialchars($event['name']) ?></h1>
 
-<div class="container mt-3 mb-3">
-    <div class="event-image mb-4 text-center">
-        <img src="<?php echo (str_starts_with($event['image'], 'http') ? $event['image'] : '../assets/images/' . htmlspecialchars($event['image'])); ?>" class="img-fluid rounded" alt="Event Image">
+    <div class="event-meta">
+      <p><strong><i class="fa-solid fa-clock"></i> Thời gian:</strong> <?= date("H:i d/m/Y", strtotime($event['start_at'])) ?></p>
+      <p><strong><i class="fa-solid fa-location-dot"></i> Địa điểm:</strong> <?= htmlspecialchars($event['location']) ?></p>
     </div>
 
-    <div class="event-info p-4" style="box-shadow: 0 4px 12px gray; border-radius: 20px;">
-        <h2 class="mb-4"><?php echo htmlspecialchars($event["name"]); ?></h2>
+    <div class="price-box">
+      <p>🎟 Giá vé từ:</p>
+      <h2><?= number_format($event['price'] * 0.6, 0, ',', '.') ?> đ</h2>
+    </div>
 
-        <p><i class="fa fa-calendar" style="color: #ff5722;"></i> <?php echo htmlspecialchars($event["date"]); ?></p>
-        <p><i class="bi bi-geo-alt-fill" style="color: #ff5722;"></i> <?php echo htmlspecialchars($event["location"]); ?></p>
-        <p><i class="bi bi-cash" style="color: #ff5722;"></i> <?php echo number_format($event["price"], 0, ",", "."); ?> VNĐ</p>
-
-        <!-- Nút mở modal mua vé -->
+    <?php if (isset($_SESSION["user_id"])): ?>
         <button type="button"
                 class="btn w-100 openModalBuy" style="background-color: #ff5722; color: white;"
                 data-id="<?= $event['id'] ?>"
                 data-type="events">
             Mua vé ngay
         </button>
-    </div>
+    <?php else: ?>
+        <a href="#" class="buy-ticket openLogin">MUA VÉ NGAY</a>
+    <?php endif; ?>
+  </div>
+
+  <div class="detail-right">
+    <img src="<?= htmlspecialchars($event['image']) ?>" alt="<?= htmlspecialchars($event['name']) ?>">
+  </div>
 </div>
 
 <?php include "../includes/ticket_modal.php"; ?>

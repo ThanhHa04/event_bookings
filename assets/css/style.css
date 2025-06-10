@@ -1,6 +1,5 @@
-
 .navbar {
-    background-color:#ff672a;
+    background-color: #ff672a;
 }
 
 .navbar .nav-link {
@@ -33,7 +32,8 @@
 
 
 .sub-navbar {
-    background: linear-gradient(to right, #002366, #6A0DAD); /* Hiệu ứng gradient */
+    background: linear-gradient(to right, #002366, #6A0DAD);
+    /* Hiệu ứng gradient */
     padding: 10px 0;
     text-align: center;
 }
@@ -43,7 +43,7 @@
     padding: 0;
     margin: 0;
     display: flex;
-    justify-content: center;
+    margin-left: 100px;
 }
 
 .sub-nav-list li {
@@ -59,7 +59,8 @@
 }
 
 .sub-nav-list li a:hover {
-    color: #FFD700; /* Màu vàng khi hover */
+    color: #FFD700;
+    /* Màu vàng khi hover */
 }
 
 
@@ -123,19 +124,21 @@
 }
 
 .modal-sm {
-    max-width: 340px; 
+    max-width: 340px;
 }
 
-.modal-content {
+/* .modal-content {
     min-height: 500px;
-}
+} */
 .header-logo {
-    right: 15px; 
+    right: 15px;
     height: 60px;
 }
+
 .toggle-password {
     cursor: pointer;
 }
+
 .close-icon {
     position: absolute;
     right: 15px;
@@ -167,7 +170,7 @@ footer .col-lg-4 {
     margin-bottom: 50px;
 }
 
-footer p, 
+footer p,
 footer h6 {
     line-height: 1.8;
     margin-bottom: 10px;
@@ -210,7 +213,7 @@ footer .d-flex a {
     border: 1px solid #ccc;
 }
 
-.btn1{
+.btn1 {
     border-radius: 5px;
 }
 
@@ -222,7 +225,7 @@ header {
 .container {
 
     padding-top: 0 !important;
-    
+
 }
 
 .carousel img {
@@ -230,6 +233,7 @@ header {
     border-radius: 10px;
     width: auto;
 }
+
 .carousel-indicators button {
     border-radius: 50%;
     background-color: white;
@@ -265,8 +269,8 @@ header {
 }
 
 .carousel-control-next,
-.carousel-control-prev{
-    width: 27px; 
+.carousel-control-prev {
+    width: 27px;
     font-size: 30px;
     color: white;
     background-color: #222;
@@ -274,7 +278,7 @@ header {
     top: 45%;
 }
 
-.event_type_list{
+.event_type_list {
     font-size: 20px;
     font-weight: 700;
     text-transform: uppercase;
@@ -288,15 +292,18 @@ header {
     display: flex;
     gap: 10px;
 }
+
 .top-row img {
     width: 100%;
     height: auto;
     border-radius: 8px;
 }
+
 .bottom-row {
     display: flex;
     gap: 10px;
 }
+
 .bottom-row img {
     width: 100%;
     height: 146px;
@@ -348,9 +355,9 @@ header {
     padding: 20px 30px;
     max-width: 400px;
     margin: auto;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
-  
+
 .success-icon-box {
     width: 70px;
     height: 70px;
@@ -361,9 +368,8 @@ header {
     align-items: center;
     margin: auto;
 }
-  
+
 .success-message-text {
     font-size: 15px;
     margin: 0;
 }
-  
