@@ -47,8 +47,8 @@ require_once "../config.php";
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="../pages/my_tickets.php">
-                        <i class="bi bi-ticket-perforated-fill"></i> Vé đã mua
+                    <a class="nav-link" href="my_tickets.php" id="myTicketsBtn">
+                        <i class="bi bi-ticket-perforated-fill"></i> Vé của tôi
                     </a>
                 </li>
                 <?php if (isset($_SESSION["user_id"])) { ?>

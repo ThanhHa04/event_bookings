@@ -3,17 +3,15 @@ session_start();
 require_once "../config.php";
 require_once "../includes/db_connect.php";
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../index.php");
-    exit();
-}
-
+// Kiểm tra event_id hợp lệ
 if (!isset($_GET["event_id"]) || !is_numeric($_GET["event_id"])) {
     echo "Lỗi: Không tìm thấy sự kiện.";
     exit();
 }
 
 $event_id = intval($_GET["event_id"]);
+
+// Lấy thông tin sự kiện
 $stmt = $pdo->prepare("SELECT * FROM events WHERE id = ?");
 $stmt->execute([$event_id]);
 $event = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -23,15 +21,13 @@ if (!$event) {
     exit();
 }
 
-
-if (!isset($_SESSION["booking"])) {
-    die("Không có dữ liệu đặt vé.");
+if (isset($_SESSION["user_id"])) {
+    $_SESSION["booking"] = [
+        "event_id" => $event_id,
+        "event_name" => $event["name"]
+    ];
 }
 
-$booking = $_SESSION["booking"];
-$event_id = $booking["event_id"];
-
-// Lấy danh sách ghế của sự kiện (sắp đúng thứ tự)
 $stmt = $pdo->prepare("
     SELECT * FROM seats 
     WHERE event_id = ? 
@@ -40,6 +36,7 @@ $stmt = $pdo->prepare("
 $stmt->execute([$event_id]);
 $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -55,59 +52,72 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="../assets/css/seat.css">
 </head>
 <body>
+    <?php include "../includes/header.php"; ?>
+    <?php include "../includes/login_modal.php"; ?>
+    <?php include "../includes/register_modal.php"; ?>
+    <div class="detail-wrapper">
+    <div class="detail-left">
+        <h1 class="event-title"><?= htmlspecialchars($event['name']) ?></h1>
 
-<?php include "../includes/header.php"; ?>
-<div class="detail-wrapper">
-  <div class="detail-left">
-    <h1 class="event-title"><?= htmlspecialchars($event['name']) ?></h1>
+        <div class="event-meta">
+        <p><strong><i class="fa-solid fa-clock"></i> Thời gian:</strong> <?= date("H:i d/m/Y", strtotime($event['start_at'])) ?></p>
+        <p><strong><i class="fa-solid fa-location-dot"></i> Địa điểm:</strong> <?= htmlspecialchars($event['location']) ?></p>
+        </div>
 
-    <div class="event-meta">
-      <p><strong><i class="fa-solid fa-clock"></i> Thời gian:</strong> <?= date("H:i d/m/Y", strtotime($event['start_at'])) ?></p>
-      <p><strong><i class="fa-solid fa-location-dot"></i> Địa điểm:</strong> <?= htmlspecialchars($event['location']) ?></p>
+        <div class="price-box">
+        <p>🎟 Giá vé từ:</p>
+        <h2><?= number_format($event['price'] * 0.6, 0, ',', '.') ?> đ</h2>
+        </div>
+
+        <?php if (isset($_SESSION["user_id"])): ?>
+            <button type="button"
+                    class="btn w-100 openModalBuy" style="background-color: #ff5722; color: white;"
+                    data-id="<?= $event['id'] ?>"
+                    data-type="events">
+                Mua vé ngay
+            </button>
+        <?php else: ?>
+            <a href="#" class="buy-ticket openLogin">MUA VÉ NGAY</a>
+        <?php endif; ?>
     </div>
 
-    <div class="price-box">
-      <p>🎟 Giá vé từ:</p>
-      <h2><?= number_format($event['price'] * 0.6, 0, ',', '.') ?> đ</h2>
+    <div class="detail-right">
+        <img src="<?= htmlspecialchars($event['image']) ?>" alt="<?= htmlspecialchars($event['name']) ?>">
+    </div>
     </div>
 
-    <?php if (isset($_SESSION["user_id"])): ?>
-        <button type="button"
-                class="btn w-100 openModalBuy" style="background-color: #ff5722; color: white;"
-                data-id="<?= $event['id'] ?>"
-                data-type="events">
-            Mua vé ngay
-        </button>
-    <?php else: ?>
-        <a href="#" class="buy-ticket openLogin">MUA VÉ NGAY</a>
-    <?php endif; ?>
-  </div>
+    <?php include "../includes/ticket_modal.php"; ?>
+    <?php include "../includes/footer.php"; ?>
 
-  <div class="detail-right">
-    <img src="<?= htmlspecialchars($event['image']) ?>" alt="<?= htmlspecialchars($event['name']) ?>">
-  </div>
-</div>
+    <script>
+        $(document).ready(function () {
+            let ticketPrice = <?php echo $event["price"]; ?>;
+        
+            $("#ticketQty").val(1);
 
-<?php include "../includes/ticket_modal.php"; ?>
-<?php include "../includes/footer.php"; ?>
+            $("#ticketQty").on("input", function () {
+                let quantity = parseInt($(this).val());
+                let total = ticketPrice * quantity;
+                $(".price-info").text(new Intl.NumberFormat("vi-VN").format(total) + " đ");
+            });
 
-<script>
-    $(document).ready(function () {
-        let ticketPrice = <?php echo $event["price"]; ?>;
-     
-        $("#ticketQty").val(1);
-
-        $("#ticketQty").on("input", function () {
-            let quantity = parseInt($(this).val());
-            let total = ticketPrice * quantity;
-            $(".price-info").text(new Intl.NumberFormat("vi-VN").format(total) + " đ");
+            $(".openModalBuy").click(function () {
+                $(".price-info").text(new Intl.NumberFormat("vi-VN").format(ticketPrice) + " đ");
+            });
         });
 
-        $(".openModalBuy").click(function () {
-            $(".price-info").text(new Intl.NumberFormat("vi-VN").format(ticketPrice) + " đ");
+        document.addEventListener("DOMContentLoaded", function () {
+            const loginModalEl = document.getElementById("loginModal");
+            const loginModal = new bootstrap.Modal(loginModalEl, { backdrop: "static" });
+
+            document.querySelectorAll(".openLogin").forEach(btn => {
+                btn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    loginModal.show();
+                });
+            });
         });
-    });
-</script>
+    </script>
 
 </body>
 </html>

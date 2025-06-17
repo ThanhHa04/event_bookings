@@ -57,14 +57,6 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
             border-radius: 10px;
         }
 
-        .ticket-card img {
-            width: 40%;
-            height: auto;
-            object-fit: cover;
-            margin-right: 20px;
-            border-radius: 8px;
-        }
-
         .card-content {
             display: flex;
             justify-content: flex-start; /* không cần space-between */

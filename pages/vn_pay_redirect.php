@@ -15,7 +15,7 @@ if (empty($selected_seats) || $totalAmount <= 0) {
     die("Dữ liệu không hợp lệ!");
 }
 
-// Tạo mã đơn hàng (chuẩn hóa giống vnpay_create_payment.php)
+// Tạo mã đơn hàng
 $vnp_TxnRef = date('ymd') . '_' . date('His') . '_' . sprintf('%04d', rand(0, 9999));
 $vnp_OrderInfo = 'Thanh toán vé sự kiện: ' . $vnp_TxnRef;
 $vnp_OrderType = 'billpayment';
@@ -25,7 +25,66 @@ $vnp_IpAddr = $_SERVER['REMOTE_ADDR'];
 $vnp_CreateDate = date('YmdHis');
 $vnp_ExpireDate = date('YmdHis', strtotime('+15 minutes'));
 
-// Build dữ liệu gửi đi
+// Thông tin người dùng từ session
+$user_id = $_SESSION['user_id'] ?? null;
+$booking = $_SESSION['booking'] ?? null;
+
+if (!$user_id || !$booking) {
+    die("Bạn cần đăng nhập và chọn sự kiện trước khi thanh toán.");
+}
+
+$event_id = $booking['event_id'];
+$full_name = $booking['full_name'];
+$email = $booking['email'];
+$phone = $booking['phone'];
+
+// Cập nhật trạng thái ghế tạm thời (chưa có hiệu lực DB)
+// Lấy danh sách seat_number
+$seat_numbers = [];
+
+$stmtGetSeatNumber = $pdo->prepare("SELECT seat_number FROM seats WHERE id = ?");
+foreach ($selected_seats as $seat_id) {
+    $stmtGetSeatNumber->execute([$seat_id]);
+    $row = $stmtGetSeatNumber->fetch(PDO::FETCH_ASSOC);
+    if ($row) { 
+        $seat_numbers[] = $row['seat_number'];
+    }
+}
+
+// Ghi dữ liệu "chờ thanh toán" vào `purchased_tickets`
+$stmtInsert = $pdo->prepare("
+    INSERT INTO purchased_tickets (
+        user_id, event_id, quantity, seat_number, full_name, email, phone, amount, payment_status, vnp_transaction_no, payment_time
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+");
+
+$stmtInsert->execute([
+    $user_id,
+    $event_id,
+    count($seat_numbers),
+    implode(',', $seat_numbers),
+    $full_name,
+    $email,
+    $phone,
+    $totalAmount,
+    'pending',
+    $vnp_TxnRef
+]);
+
+// Lưu session cho bước xác nhận VNPAY
+$_SESSION['payment'] = array(
+    'order_id' => $vnp_TxnRef,
+    'selected_seats' => $selected_seats,
+    'total_amount' => $totalAmount,
+    'event_id' => $event_id,
+    'full_name' => $full_name,
+    'email' => $email,
+    'phone' => $phone,
+    'create_date' => $vnp_CreateDate,
+    'expire_date' => $vnp_ExpireDate
+);
+
+// Build dữ liệu gửi đi VNPAY
 $inputData = array(
     "vnp_Version" => "2.1.0",
     "vnp_TmnCode" => $vnp_TmnCode,
@@ -42,7 +101,6 @@ $inputData = array(
     "vnp_ExpireDate" => $vnp_ExpireDate
 );
 
-// Sắp xếp & tạo hash
 ksort($inputData);
 $hashdata = '';
 $query = '';
@@ -60,31 +118,10 @@ foreach ($inputData as $key => $value) {
 $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
 $vnp_UrlFull = $vnp_Url . '?' . $query . 'vnp_SecureHash=' . $vnpSecureHash;
 
-// Lưu session payment để xử lý sau khi trả về
-$_SESSION['payment'] = array(
-    'order_id' => $vnp_TxnRef,
-    'selected_seats' => $selected_seats,
-    'total_amount' => $totalAmount,
-    'event_id' => $_SESSION['booking']['event_id'],
-    'full_name' => $_SESSION['booking']['full_name'],
-    'email' => $_SESSION['booking']['email'],
-    'phone' => $_SESSION['booking']['phone'],
-    'create_date' => $vnp_CreateDate,
-    'expire_date' => $vnp_ExpireDate
-);
-
-
-// Debug log (bạn có thể bật nếu muốn kiểm tra URL & thời gian):
-/*
-echo "<pre>";
-echo "vnp_CreateDate: $vnp_CreateDate\n";
-echo "vnp_ExpireDate: $vnp_ExpireDate\n";
-echo "Redirect URL: $vnp_UrlFull\n";
-echo "</pre>";
-exit;
-*/
-
 // Redirect sang VNPAY
 header('Location: ' . $vnp_UrlFull);
 exit;
+
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
 ?>
