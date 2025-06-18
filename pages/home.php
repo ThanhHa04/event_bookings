@@ -34,7 +34,7 @@ $eventResult = mysqli_query($conn, $eventQuery);
 $active = 'active';
 
 // Lấy danh sách sự kiện sắp diễn ra
-$specialQuery = "SELECT * FROM events WHERE start_time >= CURDATE() AND eStatus = 'Chưa diễn ra' ORDER BY start_time ASC LIMIT 6";
+$specialQuery = "SELECT * FROM events WHERE start_time >= CURDATE() AND eStatus = 'Chưa diễn ra' ORDER BY start_time ASC LIMIT 12";
 $specialResult = mysqli_query($conn, $specialQuery);
 
 // Bước 1: Lấy các event được đặt nhiều nhất (tối đa 6)
@@ -86,10 +86,10 @@ $visitChunks = array_chunk($visitEvents, 4);
     <?php include "../includes/register_modal.php"; ?>
 
     <div class="container mt-3">
-        <div event_id="eventSlevent_ider" class="carousel slevent_ide mx-auto" data-bs-revent_ide="carousel">
+        <div id="eventSlider" class="carousel slide mx-auto" data-bs-ride="carousel">
             <div class="carousel-indicators">
                 <?php for ($i = 0; $i < mysqli_num_rows($eventResult); $i++): ?>
-                    <button type="button" data-bs-target="#eventSlevent_ider" data-bs-slevent_ide-to="<?php echo $i; ?>" class="<?php echo $i == 0 ? 'active' : ''; ?>"></button>
+                    <button type="button" data-bs-target="#eventSlider" data-bs-slide-to="<?php echo $i; ?>" class="<?php echo $i == 0 ? 'active' : ''; ?>"></button>
                 <?php endfor; ?>
             </div>
 
@@ -111,7 +111,7 @@ $visitChunks = array_chunk($visitEvents, 4);
 
     <!-- Slevent_ider sự kiện đặc biệt -->
     <div class="container mt-5">
-        <div event_id="specialEventSlevent_ider" class="carousel slevent_ide" data-bs-revent_ide="carousel">
+        <div id="specialEventSlider" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-inner">
                 <?php 
                 $specialEvents = mysqli_fetch_all($specialResult, MYSQLI_ASSOC); 
@@ -131,10 +131,10 @@ $visitChunks = array_chunk($visitEvents, 4);
                 <?php endforeach; ?>
             </div>
 
-            <button class="carousel-control-prev" type="button" data-bs-target="#specialEventSlevent_ider" data-bs-slevent_ide="prev">
+            <button class="carousel-control-prev" type="button" data-bs-target="#specialEventSlider" data-bs-slide="prev">
                 <i class="bi bi-caret-left-fill"></i>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#specialEventSlevent_ider" data-bs-slevent_ide="next">
+            <button class="carousel-control-next" type="button" data-bs-target="#specialEventSlider" data-bs-slide="next">
                 <i class="bi bi-caret-right-fill"></i>
             </button>
         </div>
