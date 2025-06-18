@@ -6,21 +6,23 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 }
 
 // Kiểm tra dữ liệu cần thiết
-$required = ["event_id", "type", "full_name", "email", "phone", "payment_method"];
+$required = ["event_id", "type", "fullname", "email", "phone", "method"];
 foreach ($required as $field) {
     if (empty($_POST[$field])) {
         die("Thiếu thông tin: $field");
     }
 }
 
+$_SESSION["user_id"] = $_SESSION["user_id"];
+
 // Lưu thông tin tạm vào session
 $_SESSION["booking"] = [
     "event_id" => $_POST["event_id"],
     "event_type" => $_POST["type"],
-    "full_name" => $_POST["full_name"],
+    "fullname" => $_POST["fullname"],
     "email" => $_POST["email"],
     "phone" => $_POST["phone"],
-    "payment_method" => $_POST["payment_method"]
+    "payment_method" => $_POST["method"]
 ];
 
 // Chuyển hướng sang bước chọn ghế

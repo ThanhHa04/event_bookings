@@ -34,7 +34,7 @@ if (!$user_id || !$booking) {
 }
 
 $event_id = $booking['event_id'];
-$full_name = $booking['full_name'];
+$fullname = $booking['fullname'];
 $email = $booking['email'];
 $phone = $booking['phone'];
 
@@ -42,7 +42,7 @@ $phone = $booking['phone'];
 // Lấy danh sách seat_number
 $seat_numbers = [];
 
-$stmtGetSeatNumber = $pdo->prepare("SELECT seat_number FROM seats WHERE id = ?");
+$stmtGetSeatNumber = $pdo->prepare("SELECT seat_number FROM seats WHERE seat_id = ?");
 foreach ($selected_seats as $seat_id) {
     $stmtGetSeatNumber->execute([$seat_id]);
     $row = $stmtGetSeatNumber->fetch(PDO::FETCH_ASSOC);
@@ -51,33 +51,39 @@ foreach ($selected_seats as $seat_id) {
     }
 }
 
+// Tạo payment_id mới
+$stmtMax = $pdo->query("SELECT MAX(CAST(SUBSTRING(payment_id, 3) AS UNSIGNED)) AS max_index FROM payments");
+$maxRow = $stmtMax->fetch(PDO::FETCH_ASSOC);
+$nextIndex = isset($maxRow['max_index']) ? (int)$maxRow['max_index'] + 1 : 1;
+$payment_id = 'P0' . $nextIndex;
+
 // Ghi dữ liệu "chờ thanh toán" vào `purchased_tickets`
-$stmtInsert = $pdo->prepare("
-    INSERT INTO purchased_tickets (
-        user_id, event_id, quantity, seat_number, full_name, email, phone, amount, payment_status, vnp_transaction_no, payment_time
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+$stmtInsertPayment = $pdo->prepare("
+    INSERT INTO payments (
+        payment_id, user_id, payment_at, method, amount, fullname, email, phone, pStatus, vnp_transaction_no
+    ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?)
 ");
 
-$stmtInsert->execute([
+$stmtInsertPayment->execute([
+    $payment_id,
     $user_id,
-    $event_id,
-    count($seat_numbers),
-    implode(',', $seat_numbers),
-    $full_name,
+    'vnpay',           // Hoặc 'momo', tuỳ theo cổng thanh toán
+    $totalAmount,
+    $fullname,
     $email,
     $phone,
-    $totalAmount,
     'pending',
     $vnp_TxnRef
 ]);
 
-// Lưu session cho bước xác nhận VNPAY
+// Lưu session cho bước xác nhận thanh toán thành công
 $_SESSION['payment'] = array(
-    'order_id' => $vnp_TxnRef,
+    'payment_id' => $payment_id,
+    'vnp_transaction_no' => $vnp_TxnRef,
     'selected_seats' => $selected_seats,
     'total_amount' => $totalAmount,
     'event_id' => $event_id,
-    'full_name' => $full_name,
+    'fullname' => $fullname,
     'email' => $email,
     'phone' => $phone,
     'create_date' => $vnp_CreateDate,

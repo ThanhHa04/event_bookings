@@ -3,16 +3,13 @@ session_start();
 require_once "../config.php";
 require_once "../includes/db_connect.php";
 
-// Kiểm tra event_id hợp lệ
-if (!isset($_GET["event_id"]) || !is_numeric($_GET["event_id"])) {
+if (!isset($_GET["event_id"]) || empty($_GET["event_id"])) {
     echo "Lỗi: Không tìm thấy sự kiện.";
     exit();
 }
-
-$event_id = intval($_GET["event_id"]);
-
+$event_id = $_GET["event_id"];
 // Lấy thông tin sự kiện
-$stmt = $pdo->prepare("SELECT * FROM events WHERE id = ?");
+$stmt = $pdo->prepare("SELECT * FROM events WHERE event_id = ?");
 $stmt->execute([$event_id]);
 $event = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -24,7 +21,7 @@ if (!$event) {
 if (isset($_SESSION["user_id"])) {
     $_SESSION["booking"] = [
         "event_id" => $event_id,
-        "event_name" => $event["name"]
+        "event_name" => $event["event_name"]
     ];
 }
 
@@ -57,23 +54,23 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php include "../includes/register_modal.php"; ?>
     <div class="detail-wrapper">
     <div class="detail-left">
-        <h1 class="event-title"><?= htmlspecialchars($event['name']) ?></h1>
+        <h1 class="event-title"><?= htmlspecialchars($event['event_name']) ?></h1>
 
         <div class="event-meta">
-        <p><strong><i class="fa-solid fa-clock"></i> Thời gian:</strong> <?= date("H:i d/m/Y", strtotime($event['start_at'])) ?></p>
+        <p><strong><i class="fa-solid fa-clock"></i> Thời gian:</strong> <?= date("H:i d/m/Y", strtotime($event['start_time'])) ?></p>
         <p><strong><i class="fa-solid fa-location-dot"></i> Địa điểm:</strong> <?= htmlspecialchars($event['location']) ?></p>
         </div>
 
         <div class="price-box">
         <p>🎟 Giá vé từ:</p>
-        <h2><?= number_format($event['price'] * 0.6, 0, ',', '.') ?> đ</h2>
+        <h2><?= number_format($event['price']) ?> đ</h2>
         </div>
 
         <?php if (isset($_SESSION["user_id"])): ?>
             <button type="button"
                     class="btn w-100 openModalBuy" style="background-color: #ff5722; color: white;"
-                    data-id="<?= $event['id'] ?>"
-                    data-type="events">
+                    data-id="<?= $event['event_id'] ?>"
+                    data-type="<?= $event['event_type'] ?>">
                 Mua vé ngay
             </button>
         <?php else: ?>
@@ -82,7 +79,7 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <div class="detail-right">
-        <img src="<?= htmlspecialchars($event['image']) ?>" alt="<?= htmlspecialchars($event['name']) ?>">
+        <img src="<?= htmlspecialchars($event['event_img']) ?>" alt="<?= htmlspecialchars($event['event_name']) ?>">
     </div>
     </div>
 
@@ -107,8 +104,7 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
         });
 
         document.addEventListener("DOMContentLoaded", function () {
-            const loginModalEl = document.getElementById("loginModal");
-            const loginModal = new bootstrap.Modal(loginModalEl, { backdrop: "static" });
+            const loginModal = new bootstrap.Modal(document.getElementById("loginModal"), { backdrop: "static" });
 
             document.querySelectorAll(".openLogin").forEach(btn => {
                 btn.addEventListener("click", function (e) {
@@ -116,6 +112,18 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     loginModal.show();
                 });
             });
+
+            const myTicketBtn = document.getElementById("myTicketsBtn");
+            if (myTicketBtn) {
+                myTicketBtn.addEventListener("click", function (e) {
+                    if (!isLoggedIn) {
+                        e.preventDefault();
+                        loginModal.show(); 
+                    } else {
+                        window.location.href = "../pages/my_tickets.php"; 
+                    }
+                });
+            }
         });
     </script>
 

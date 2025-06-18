@@ -1,27 +1,35 @@
 <?php
+session_start();
 require_once "../includes/db_connect.php";
 
 $query = $_GET['query'] ?? '';
 $time_filter = $_GET['time_filter'] ?? '';
 $results = [];
 
-$baseSql = "SELECT id, name, start_at, location, image, eStatus 
+$baseSql = "SELECT event_id, event_name, start_time, price, location, event_img, eStatus 
             FROM events 
             WHERE eStatus = 'Chưa diễn ra'";
 
 $params = [];
 if (!empty(trim($query))) {
-    $baseSql .= " AND name LIKE ?";
+    $baseSql .= " AND event_name LIKE ?";
     $params[] = "%" . $query . "%";
 }
 
 if ($time_filter === 'week') {
-    $baseSql .= " AND WEEK(start_at) = WEEK(CURDATE()) AND YEAR(start_at) = YEAR(CURDATE())";
+    $baseSql .= " AND WEEK(start_time) = WEEK(CURDATE()) AND YEAR(start_time) = YEAR(CURDATE())";
 } elseif ($time_filter === 'month') {
-    $baseSql .= " AND MONTH(start_at) = MONTH(CURDATE()) AND YEAR(start_at) = YEAR(CURDATE())";
+    $baseSql .= " AND MONTH(start_time) = MONTH(CURDATE()) AND YEAR(start_time) = YEAR(CURDATE())";
 }
 
-$baseSql .= " ORDER BY start_at  ASC";
+$location = $event['location'] ?? '';
+$parts = explode(',', $location);
+$shortLocation = $location; 
+if (count($parts) >= 2) {
+    $shortLocation = trim($parts[count($parts) - 2]) . ', ' . trim($parts[count($parts) - 1]);
+}
+
+$baseSql .= " ORDER BY start_time  ASC";
 
 $stmt = $pdo->prepare($baseSql);
 $stmt->execute($params);
@@ -35,6 +43,7 @@ $results = $stmt->fetchAll();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search</title>
+    <link rel="stylesheet" href="../assets/css/event_type.css">
 </head>
 <body>
     <?php include "../includes/header.php"; ?>
@@ -65,14 +74,31 @@ $results = $stmt->fetchAll();
         <?php if ($results): ?>
             <div class="row">
                 <?php foreach ($results as $event): ?>
+                    <?php
+                        $location = $event['location'];
+                        $parts = explode(',', $location);
+                        $parts = array_map('trim', $parts);
+
+                        if (count($parts) >= 2) {
+                            $location_display = implode(', ', array_slice($parts, -2));
+                        } else {
+                            $location_display = $location;
+                        }
+
+                        $startTime = strtotime($event['start_time']);
+                        $month = date("m", $startTime);
+                        $day = date("d", $startTime);
+                        $year = date("Y", $startTime);
+                    ?>
                     <div class="col-md-3 mb-4">
                         <div class="card h-100 shadow-sm" style="transition: 0.3s">
-                            <a href="detail.php?event_id=<?= urlencode($event['id']) ?>" class="text-decoration-none text-dark">
-                                <img src="<?= htmlspecialchars($event['image']) ?>" class="card-img-top" style="height: 180px; object-fit: cover;" alt="<?= htmlspecialchars($event['name']) ?>">
+                            <a href="detail.php?event_id=<?= urlencode($event['event_id']) ?>" class="text-decoration-none text-dark">
+                                <img src="<?= htmlspecialchars($event['event_img']) ?>" class="card-img-top" style="height: 180px; object-fit: cover;" alt="<?= htmlspecialchars($event['event_name']) ?>">
                                 <div class="card-body">
-                                    <p class="card-title fw-bold"><?= htmlspecialchars($event['name']) ?></p>
-                                    <p class="card-text text-muted" style="font-size: 14px"><?= htmlspecialchars($event['start_at']) ?></p>
-                                    <p class="card-text" style="font-size: 14px; color: #666;">Địa điểm: <?= htmlspecialchars($event['location']) ?></p>
+                                    <div class="date-tag">Tháng <?php echo $month; ?><br><strong><?php echo $day; ?></strong></div>
+                                    <p class="card-title fw-bold"><?= htmlspecialchars($event['event_name']) ?></p>
+                                    <p class="card-text" style="font-size: 14px; color: #666;"><i class="fa-solid fa-location-dot"></i> <?= htmlspecialchars($location_display) ?></p>
+                                    <p class="price"><?= number_format($event['price']) ?>+</p>
                                 </div>
                             </a>
                         </div>
@@ -85,6 +111,31 @@ $results = $stmt->fetchAll();
     </div>
 
     <?php include "../includes/footer.php"; ?>
+    <script src="../assets/js/script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const loginModal = new bootstrap.Modal(document.getElementById("loginModal"), { backdrop: "static" });
+
+            document.querySelectorAll(".openLogin").forEach(btn => {
+                btn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    loginModal.show();
+                });
+            });
+
+            const myTicketBtn = document.getElementById("myTicketsBtn");
+            if (myTicketBtn) {
+                myTicketBtn.addEventListener("click", function (e) {
+                    if (!isLoggedIn) {
+                        e.preventDefault();
+                        loginModal.show(); 
+                    } else {
+                        window.location.href = "../pages/my_tickets.php"; 
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 

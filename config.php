@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 $host = 'localhost';
 $username = 'root';
 $password = '';
-$database = 'ticket_selling';
+$database = 'ticketbox';
 
 $conn = mysqli_connect($host, $username, $password, $database);
 

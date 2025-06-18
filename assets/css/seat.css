@@ -1,4 +1,3 @@
-
 /* Tạo bảng chọn ghế */
 body {
     background-color: #ff672a;
@@ -39,7 +38,7 @@ body {
     opacity: 0.85;
 }
 
-.available.regular {
+.available.normal {
     background-color: #198754;
     color: #fff;
 }

@@ -1,15 +1,16 @@
 <?php
+session_start();
 require_once "../config.php";
 require_once "../includes/db_connect.php";
 
 $now = new DateTime();
 
 // Lấy tất cả event để kiểm tra trạng thái
-$stmtStatus = $pdo->query("SELECT id, start_at FROM events");
+$stmtStatus = $pdo->query("SELECT event_id, start_time FROM events");
 $allEvents = $stmtStatus->fetchAll(PDO::FETCH_ASSOC);
 
 foreach ($allEvents as $event) {
-    $start = new DateTime($event['start_at']);
+    $start = new DateTime($event['start_time']);
     $end = clone $start;
 
     if ($now < $start) {
@@ -18,35 +19,35 @@ foreach ($allEvents as $event) {
         $newStatus = "Đã diễn ra";
     }
 
-    $stmtCheck = $pdo->prepare("SELECT eStatus FROM events WHERE id = ?");
-    $stmtCheck->execute([$event['id']]);
+    $stmtCheck = $pdo->prepare("SELECT eStatus FROM events WHERE event_id = ?");
+    $stmtCheck->execute([$event['event_id']]);
     $currentStatus = $stmtCheck->fetchColumn();
 
     if ($currentStatus !== $newStatus) {
-        $stmtUpdate = $pdo->prepare("UPDATE events SET eStatus = ? WHERE id = ?");
-        $stmtUpdate->execute([$newStatus, $event['id']]);
+        $stmtUpdate = $pdo->prepare("UPDATE events SET eStatus = ? WHERE event_id = ?");
+        $stmtUpdate->execute([$newStatus, $event['event_id']]);
     }
 }
-// Lấy danh sách sự kiện cho slider
+// Lấy danh sách sự kiện cho slevent_ider
 $eventQuery = "SELECT * FROM events WHERE eStatus = 'Chưa diễn ra' ORDER BY RAND() LIMIT 5";
 $eventResult = mysqli_query($conn, $eventQuery);
 $active = 'active';
 
 // Lấy danh sách sự kiện sắp diễn ra
-$specialQuery = "SELECT * FROM events WHERE start_at >= CURDATE() AND eStatus = 'Chưa diễn ra' ORDER BY start_at ASC LIMIT 6";
+$specialQuery = "SELECT * FROM events WHERE start_time >= CURDATE() AND eStatus = 'Chưa diễn ra' ORDER BY start_time ASC LIMIT 6";
 $specialResult = mysqli_query($conn, $specialQuery);
 
 // Bước 1: Lấy các event được đặt nhiều nhất (tối đa 6)
-$popularQuery = " SELECT e.id, e.image, e.name FROM events e JOIN ( SELECT event_id, COUNT(*) AS total FROM purchased_tickets GROUP BY event_id ORDER BY total DESC ) AS pt ON pt.event_id = e.id WHERE e.eStatus = 'Chưa diễn ra' ORDER BY pt.total DESC LIMIT 6";
+$popularQuery = " SELECT e.event_id, e.event_img, e.event_name FROM events e JOIN ( SELECT event_id, COUNT(*) AS total FROM tickets GROUP BY event_id ORDER BY total DESC ) AS pt ON pt.event_id = e.event_id WHERE e.eStatus = 'Chưa diễn ra' ORDER BY pt.total DESC LIMIT 6";
 $stmt = $pdo->query($popularQuery);
 $popularEvents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $needed = 6 - count($popularEvents);
 if ($needed > 0) {
-    $excludedIds = array_column($popularEvents, 'id');
-    $placeholders = rtrim(str_repeat('?,', count($excludedIds)), ',');
-    $randomQuery = " SELECT id, image, name FROM events WHERE eStatus = 'Chưa diễn ra' " . (count($excludedIds) ? "AND id NOT IN ($placeholders)" : "") . "ORDER BY RAND() LIMIT $needed";
+    $excludedevent_ids = array_column($popularEvents, 'event_id');
+    $placeholders = rtrim(str_repeat('?,', count($excludedevent_ids)), ',');
+    $randomQuery = " SELECT event_id, event_img, event_name FROM events WHERE eStatus = 'Chưa diễn ra' " . (count($excludedevent_ids) ? "AND event_id NOT IN ($placeholders)" : "") . "ORDER BY RAND() LIMIT $needed";
     $stmt = $pdo->prepare($randomQuery);
-    $stmt->execute($excludedIds);
+    $stmt->execute($excludedevent_ids);
     $randomEvents = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $featuredEvents = array_merge($popularEvents, $randomEvents);
 } else {
@@ -54,13 +55,13 @@ if ($needed > 0) {
 }
 
 // Lấy sự kiện ca nhạc
-$musicQuery = "SELECT * FROM events WHERE event_type = 'music' AND eStatus = 'Chưa diễn ra' ORDER BY start_at ASC LIMIT 8";
+$musicQuery = "SELECT * FROM events WHERE event_type = 'music' AND eStatus = 'Chưa diễn ra' ORDER BY start_time ASC LIMIT 8";
 $musicResult = mysqli_query($conn, $musicQuery);
 $musicEvents = mysqli_fetch_all($musicResult, MYSQLI_ASSOC); 
 $eventChunks = array_chunk($musicEvents, 4);
 
 // Lấy sự kiện tham quan
-$visitQuery = "SELECT * FROM events WHERE event_type = 'visit' AND eStatus = 'Chưa diễn ra' ORDER BY start_at ASC LIMIT 8";
+$visitQuery = "SELECT * FROM events WHERE event_type = 'visit' AND eStatus = 'Chưa diễn ra' ORDER BY start_time ASC LIMIT 8";
 $visitResult = mysqli_query($conn, $visitQuery);
 $visitEvents = mysqli_fetch_all($visitResult, MYSQLI_ASSOC);
 $visitChunks = array_chunk($visitEvents, 4);
@@ -85,10 +86,10 @@ $visitChunks = array_chunk($visitEvents, 4);
     <?php include "../includes/register_modal.php"; ?>
 
     <div class="container mt-3">
-        <div id="eventSlider" class="carousel slide mx-auto" data-bs-ride="carousel">
+        <div event_id="eventSlevent_ider" class="carousel slevent_ide mx-auto" data-bs-revent_ide="carousel">
             <div class="carousel-indicators">
                 <?php for ($i = 0; $i < mysqli_num_rows($eventResult); $i++): ?>
-                    <button type="button" data-bs-target="#eventSlider" data-bs-slide-to="<?php echo $i; ?>" class="<?php echo $i == 0 ? 'active' : ''; ?>"></button>
+                    <button type="button" data-bs-target="#eventSlevent_ider" data-bs-slevent_ide-to="<?php echo $i; ?>" class="<?php echo $i == 0 ? 'active' : ''; ?>"></button>
                 <?php endfor; ?>
             </div>
 
@@ -98,8 +99,8 @@ $visitChunks = array_chunk($visitEvents, 4);
                 $first = true;
                 while ($row = mysqli_fetch_assoc($eventResult)): ?>
                     <div class="carousel-item <?php echo $first ? 'active' : ''; ?>">
-                        <a href="payment.php?event_id=<?php echo $row['id']; ?>">
-                            <img src="<?php echo (str_starts_with($row['image'], 'http') ? $row['image'] : '../assets/images/' . htmlspecialchars($row['image'])); ?>" class="d-block" alt="Event Image">
+                        <a href="payment.php?event_id=<?php echo $row['event_id']; ?>">
+                            <img src="<?php echo (str_starts_with($row['event_img'], 'http') ? $row['event_img'] : '../assets/images/' . htmlspecialchars($row['image'])); ?>" class="d-block" alt="Event Image">
                         </a>
                     </div>
                     <?php $first = false; ?>
@@ -108,9 +109,9 @@ $visitChunks = array_chunk($visitEvents, 4);
         </div>
     </div>
 
-    <!-- Slider sự kiện đặc biệt -->
+    <!-- Slevent_ider sự kiện đặc biệt -->
     <div class="container mt-5">
-        <div id="specialEventSlider" class="carousel slide" data-bs-ride="carousel">
+        <div event_id="specialEventSlevent_ider" class="carousel slevent_ide" data-bs-revent_ide="carousel">
             <div class="carousel-inner">
                 <?php 
                 $specialEvents = mysqli_fetch_all($specialResult, MYSQLI_ASSOC); 
@@ -119,9 +120,9 @@ $visitChunks = array_chunk($visitEvents, 4);
                     <div class="carousel-item <?php echo $index == 0 ? 'active' : ''; ?>">
                         <div class="d-flex justify-content-center gap-4">
                             <?php foreach ($specialItems as $special): ?>
-                                <a href="payment.php?event_id=<?php echo $special['id']; ?>">
+                                <a href="payment.php?event_id=<?php echo $special['event_id']; ?>">
                                     <div class="event-card">
-                                        <img src="<?php echo (str_starts_with($special['image'], 'http') ? $special['image'] : '../assets/images/' . htmlspecialchars($special['image'])); ?>" alt="<?php echo htmlspecialchars($special['title']); ?>">
+                                        <img src="<?php echo (str_starts_with($special['event_img'], 'http') ? $special['event_img'] : '../assets/images/' . htmlspecialchars($special['image'])); ?>" alt="<?php echo htmlspecialchars($special['title']); ?>">
                                     </div>
                                 </a>
                             <?php endforeach; ?>
@@ -130,10 +131,10 @@ $visitChunks = array_chunk($visitEvents, 4);
                 <?php endforeach; ?>
             </div>
 
-            <button class="carousel-control-prev" type="button" data-bs-target="#specialEventSlider" data-bs-slide="prev">
+            <button class="carousel-control-prev" type="button" data-bs-target="#specialEventSlevent_ider" data-bs-slevent_ide="prev">
                 <i class="bi bi-caret-left-fill"></i>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#specialEventSlider" data-bs-slide="next">
+            <button class="carousel-control-next" type="button" data-bs-target="#specialEventSlevent_ider" data-bs-slevent_ide="next">
                 <i class="bi bi-caret-right-fill"></i>
             </button>
         </div>
@@ -148,18 +149,18 @@ $visitChunks = array_chunk($visitEvents, 4);
         <?php if (!empty($featuredEvents)): ?>
             <div class="top-row">
                 <?php for ($i = 0; $i < min(2, count($featuredEvents)); $i++): ?>
-                    <a href="payment.php?event_id=<?php echo $featuredEvents[$i]['id']; ?>">
-                        <img src="<?php echo (str_starts_with($featuredEvents[$i]['image'], 'http') ? $featuredEvents[$i]['image'] : '../assets/images/' . htmlspecialchars($featuredEvents[$i]['image'])); ?>" 
-                            alt="<?php echo htmlspecialchars($featuredEvents[$i]['name']); ?>">
+                    <a href="payment.php?event_id=<?php echo $featuredEvents[$i]['event_id']; ?>">
+                        <img src="<?php echo (str_starts_with($featuredEvents[$i]['event_img'], 'http') ? $featuredEvents[$i]['event_img'] : '../assets/images/' . htmlspecialchars($featuredEvents[$i]['image'])); ?>" 
+                            alt="<?php echo htmlspecialchars($featuredEvents[$i]['event_name']); ?>">
                     </a>
                 <?php endfor; ?>
             </div>
 
             <div class="bottom-row mt-2">
                 <?php for ($i = 2; $i < min(6, count($featuredEvents)); $i++): ?>
-                    <a href="payment.php?event_id=<?php echo $featuredEvents[$i]['id']; ?>">
-                        <img src="<?php echo (str_starts_with($featuredEvents[$i]['image'], 'http') ? $featuredEvents[$i]['image'] : '../assets/images/' . htmlspecialchars($featuredEvents[$i]['image'])); ?>" 
-                            alt="<?php echo htmlspecialchars($featuredEvents[$i]['name']); ?>">
+                    <a href="payment.php?event_id=<?php echo $featuredEvents[$i]['event_id']; ?>">
+                        <img src="<?php echo (str_starts_with($featuredEvents[$i]['event_img'], 'http') ? $featuredEvents[$i]['event_img'] : '../assets/images/' . htmlspecialchars($featuredEvents[$i]['image'])); ?>" 
+                            alt="<?php echo htmlspecialchars($featuredEvents[$i]['event_name']); ?>">
                     </a>
                 <?php endfor; ?>
             </div>
@@ -178,9 +179,9 @@ $visitChunks = array_chunk($visitEvents, 4);
             <div class="event-slider">
                 <?php foreach ($chunk as $event): ?>
                     <div class="event-item">
-                        <a href="payment.php?event_id=<?= $event['id'] ?>" style="text-decoration: none; color: inherit;">
-                            <img src="<?= htmlspecialchars($event['image']) ?>" alt="<?= htmlspecialchars($event['name']) ?>">
-                            <p><?= htmlspecialchars($event['name']) ?></p>
+                        <a href="payment.php?event_id=<?= $event['event_id'] ?>" style="text-decoration: none; color: inherit;">
+                            <img src="<?= htmlspecialchars($event['event_img']) ?>" alt="<?= htmlspecialchars($event['event_name']) ?>">
+                            <p><?= htmlspecialchars($event['event_name']) ?></p>
                         </a>
                     </div>
                 <?php endforeach; ?>
@@ -198,9 +199,9 @@ $visitChunks = array_chunk($visitEvents, 4);
             <div class="event-slider">
                 <?php foreach ($chunk as $event): ?>
                     <div class="event-item">
-                        <a href="payment.php?event_id=<?= $event['id'] ?>" style="text-decoration: none; color: inherit;">
-                            <img src="<?= htmlspecialchars($event['image']) ?>" alt="<?= htmlspecialchars($event['name']) ?>">
-                            <p><?= htmlspecialchars($event['name']) ?></p>
+                        <a href="payment.php?event_id=<?= $event['event_id'] ?>" style="text-decoration: none; color: inherit;">
+                            <img src="<?= htmlspecialchars($event['event_img']) ?>" alt="<?= htmlspecialchars($event['event_name']) ?>">
+                            <p><?= htmlspecialchars($event['event_name']) ?></p>
                         </a>
                     </div>
                 <?php endforeach; ?>
@@ -213,29 +214,9 @@ $visitChunks = array_chunk($visitEvents, 4);
     <script src="../assets/js/script.js"></script> 
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const loginModal = new bootstrap.Modal(document.getElementById("loginModal"), { backdrop: "static" });
-
-            document.querySelectorAll(".openLogin").forEach(btn => {
-                btn.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    loginModal.show();
-                });
-            });
-
-            const myTicketBtn = document.getElementById("myTicketsBtn");
-            if (myTicketBtn) {
-                myTicketBtn.addEventListener("click", function (e) {
-                    if (!isLoggedIn) {
-                        e.preventDefault();
-                        loginModal.show(); 
-                    } else {
-                        window.location.href = "../pages/my_tickets.php"; 
-                    }
-                });
-            }
-        });
+        const isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
     </script>
+
 
 
 </body>

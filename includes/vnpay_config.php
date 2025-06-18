@@ -12,3 +12,9 @@ $vnp_Ipnurl = 'http://localhost/WebDatDoAn/vnpay_ipn.php';
 $vnp_Version = '2.1.0';
 $vnp_Locale = 'vn';
 ?>
+
+<!-- Ngân hàng: NCB
+Số thẻ: 9704198526191432198
+Tên chủ thẻ:NGUYEN VAN A
+Ngày phát hành:07/15
+Mật khẩu OTP:123456 du -->

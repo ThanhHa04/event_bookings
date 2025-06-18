@@ -17,7 +17,7 @@ $eventTypeDisplay = isset($eventTypeMap[$eventTypeParam]) ? $eventTypeMap[$event
 
 $today = date('Y-m-d');
 if ($eventTypeParam === 'all') {
-    $query = "SELECT * FROM events ORDER BY start_at";
+    $query = "SELECT * FROM events Where eStatus='Chưa diễn ra' ORDER BY start_time ASC";
     $stmt = $pdo->prepare($query);
     $success = $stmt->execute();
 
@@ -27,7 +27,7 @@ if ($eventTypeParam === 'all') {
         exit;
     }
 } else {
-    $query = "SELECT * FROM events WHERE event_type = :event_type AND DATE(start_at) >= :today ORDER BY start_at ASC";
+    $query = "SELECT * FROM events WHERE event_type = :event_type AND DATE(start_time) >= :today ORDER BY start_time ASC";
     $stmt = $pdo->prepare($query);
     $stmt->execute([
         'event_type' => $eventTypeParam,
@@ -76,23 +76,23 @@ $mainEvent = count($result) > 0 ? $result[0] : null;
                     $location_display = $location;
                 }
 
-                $startTime = strtotime($mainEvent['start_at']);
+                $startTime = strtotime($mainEvent['start_time']);
                 $month = date("m", $startTime);
                 $day = date("d", $startTime);
                 $year = date("Y", $startTime);
             ?>
-            <a href="payment.php?event_id=<?= $mainEvent['id'] ?>" class="main-single" style="text-decoration: none; color: black;">
+            <a href="payment.php?event_id=<?= $mainEvent['event_id'] ?>" class="main-single" style="text-decoration: none; color: black;">
                 <div class="image-box">
-                    <img src="<?= htmlspecialchars($mainEvent['image']) ?>" alt="<?= htmlspecialchars($mainEvent['name']) ?>">
+                    <img src="<?= htmlspecialchars($mainEvent['event_img']) ?>" alt="<?= htmlspecialchars($mainEvent['event_img']) ?>">
                 </div>
                 <div class="content-box">
-                    <h4><?= htmlspecialchars($mainEvent['name']) ?></h4>
+                    <h4><?= htmlspecialchars($mainEvent['event_name']) ?></h4>
                     <div class="info-row">
                         <span><i class="fa-solid fa-calendar-days"></i> <?= "$day/$month/$year" ?></span><br>
                         <span><i class="fa-solid fa-location-dot"></i> <?= htmlspecialchars($location_display) ?></span>
                     </div>
                     <p class="desc"><?= nl2br(htmlspecialchars($mainEvent['description'] ?? '')) ?></p>
-                    <span class="price">VNĐ <?= number_format($mainEvent['price'] * 0.6, 0, ',', '.') ?> +</span>
+                    <span class="price">VNĐ <?= number_format($mainEvent['price']) ?> +</span>
                 </div>
             </a>
         <?php endif; ?>
@@ -113,18 +113,18 @@ $mainEvent = count($result) > 0 ? $result[0] : null;
                                 $location_display = $location;
                             }
 
-                            $startTime = strtotime($row['start_at']);
+                            $startTime = strtotime($row['start_time']);
                             $month = date("m", $startTime);
                             $day = date("d", $startTime);
                             $year = date("Y", $startTime);
                         ?>
-                        <a href="payment.php?event_id=<?php echo urlencode($row['id']); ?>" class="single-card">
-                            <img src="<?php echo htmlspecialchars($row['image']); ?>" alt="<?php echo htmlspecialchars($row['name']); ?>">
+                        <a href="payment.php?event_id=<?php echo urlencode($row['event_id']); ?>" class="single-card">
+                            <img src="<?php echo htmlspecialchars($row['event_img']); ?>" alt="<?php echo htmlspecialchars($row['event_name']); ?>">
                             <div class="card-info">
                                 <div class="date-tag">Tháng <?php echo $month; ?><br><strong><?php echo $day; ?></strong></div>
-                                <p class="title"><?php echo htmlspecialchars($row['name']); ?></p>
-                                <span>📍 <?php echo htmlspecialchars($location_display); ?></span>
-                                <span class="price">VNĐ <?php echo number_format($row['price'] * 0.6, 0, ',', '.'); ?> +</span>
+                                <p class="title"><?php echo htmlspecialchars($row['event_name']); ?></p>
+                                <span><i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($location_display); ?></span>
+                                <span class="price">VNĐ <?php echo number_format($row['price']); ?> +</span>
                             </div>
                         </a>
                     <?php endforeach; ?>
@@ -137,5 +137,29 @@ $mainEvent = count($result) > 0 ? $result[0] : null;
 
     <?php include "../includes/footer.php"; ?>
     <script src="../assets/js/script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const loginModal = new bootstrap.Modal(document.getElementById("loginModal"), { backdrop: "static" });
+
+            document.querySelectorAll(".openLogin").forEach(btn => {
+                btn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    loginModal.show();
+                });
+            });
+
+            const myTicketBtn = document.getElementById("myTicketsBtn");
+            if (myTicketBtn) {
+                myTicketBtn.addEventListener("click", function (e) {
+                    if (!isLoggedIn) {
+                        e.preventDefault();
+                        loginModal.show(); 
+                    } else {
+                        window.location.href = "../pages/my_tickets.php"; 
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

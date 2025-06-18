@@ -1,15 +1,15 @@
 <?php
 session_start();
 require_once "../includes/db_connect.php";
-
+if (!isset($_SESSION["user_id"])) {
+    die("Chưa đăng nhập hoặc user_id chưa được set trong session.");
+}
 if (!isset($_SESSION["booking"])) {
     die("Không có dữ liệu đặt vé.");
 }
-
+$user_id = $_SESSION["user_id"];
 $booking = $_SESSION["booking"];
 $event_id = $booking["event_id"];
-
-// Lấy danh sách ghế của sự kiện (sắp đúng thứ tự)
 $stmt = $pdo->prepare("
     SELECT * FROM seats 
     WHERE event_id = ? 
@@ -35,7 +35,7 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h2 class="mb-4 text-center" style="color: white" ><i class="bi bi-ticket-perforated-fill"></i> Chọn ghế cho sự kiện</h2>
 
     <div class="booking-info mb-4 text-center">
-        <p><strong>Họ tên:</strong> <?= htmlspecialchars($booking["full_name"]) ?> |
+        <p><strong>Họ tên:</strong> <?= htmlspecialchars($booking["fullname"]) ?> |
            <strong>Email:</strong> <?= htmlspecialchars($booking["email"]) ?> |
            <strong>SĐT:</strong> <?= htmlspecialchars($booking["phone"]) ?> |
            <strong>Phương thức thanh toán:</strong> <?= htmlspecialchars($booking["payment_method"]) ?></p>
@@ -54,7 +54,7 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php
             $current_row = '';
             foreach ($seats as $seat):
-                $seat_row = substr($seat["seat_number"], 0, 1); // A, B, C ...
+                $seat_row = substr($seat["seat_number"], 0, 1); // N, V, S
 
                 if ($seat_row !== $current_row) {
                     if ($current_row !== '') echo '</div>'; // đóng row cũ
@@ -63,12 +63,16 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     $current_row = $seat_row;
                 }
 
-                $seat_class = $seat["is_booked"] == 1 ? "booked" : "available " . $seat["seat_type"];
+                // Xác định class loại ghế
+                $seat_type = strtolower($seat["seat_type"]); // normal, vip, standing
+                $is_booked = $seat["sStatus"] === "Đã đặt";
+
+                $seat_class = $is_booked ? "booked" : "available " . $seat_type;
             ?>
                 <div class="seat <?= $seat_class ?>"
-                    data-seat="<?= $seat["id"] ?>"
-                    data-price="<?= $seat["price"] ?>"
-                    <?= $seat["is_booked"] == 1 ? "disabled" : "" ?> >
+                    data-seat="<?= $seat["seat_id"] ?>"
+                    data-price="<?= $seat["seat_price"] ?>"
+                    <?= $is_booked ? "disabled" : "" ?>>
                     <?= htmlspecialchars($seat["seat_number"]) ?>
                 </div>
             <?php endforeach; ?>
@@ -78,11 +82,11 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <!-- Legend -->
         <div class="legend">
             <div class="legend-item">
-                <div class="legend-box" style="background-color: #198754;"></div> Ghế thường
+                <div class="legend-box" style="background-color: #198754;"></div> Ghế thường (N)
             </div>
             <div class="legend-item">
-                <div class="legend-box" style="background-color: #d63384;"></div> Ghế VIP
-            </div>
+                <div class="legend-box" style="background-color: #d63384;"></div> Ghế VIP (V)
+            </div>  
             <div class="legend-item">
                 <div class="legend-box" style="background-color: #fd7e14;"></div> Ghế đã chọn
             </div>
@@ -90,6 +94,7 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="legend-box" style="background-color: #dee2e6;"></div> Ghế đã đặt
             </div>
         </div>
+
 
         <div class="mb-4 text-center">
             <p class="total-price">Tổng tiền: <span id="totalPrice">0</span> VND</p>

@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once "../config.php";
 require_once "../includes/db_connect.php";
 
@@ -11,11 +12,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user["password"])) {
-        $_SESSION["user_id"] = $user["id"];
+        $_SESSION["user_id"] = $user["user_id"];
         $_SESSION["fullname"] = $user["fullname"]; 
-        echo "<script>alert('Đăng nhập thành công!'); window.location.href='../pages/home.php';</script>";
+        header("Location: ../pages/home.php");
+        exit();
     } else {
-        echo "<script>alert('Sai email hoặc mật khẩu!'); window.location.href='../index.php';</script>";
+        header("Location: ../index.php?error=1");
+        exit();
     }
 }
 ?>

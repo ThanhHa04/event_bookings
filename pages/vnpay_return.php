@@ -37,11 +37,13 @@ $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
 if ($secureHash === $vnp_SecureHash && $payment_session) {
     if ($vnp_ResponseCode == '00' && $vnp_TransactionStatus == '00') {
-        // Thanh toán thành công
+        // ✅ Thanh toán thành công
+
+        // Cập nhật trạng thái purchased_tickets
         $stmtUpdateTicket = $pdo->prepare("
-            UPDATE purchased_tickets 
-            SET payment_status = 'paid', vnp_transaction_no = ?, payment_time = NOW()
-            WHERE user_id = ? AND vnp_transaction_no = ? AND payment_status = 'pending'
+            UPDATE payments 
+            SET pStatus = 'paid', vnp_transaction_no = ?, payment_time = NOW()
+            WHERE user_id = ? AND vnp_transaction_no = ? AND pStatus = 'pending'
         ");
         $stmtUpdateTicket->execute([
             $vnp_TransactionNo,
@@ -52,8 +54,9 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
         $selected_seats = $payment_session['selected_seats'];
         $seat_numbers = [];
 
-        $stmtUpdateSeat = $pdo->prepare("UPDATE seats SET is_booked = 1 WHERE id = ?");
-        $stmtGetSeat = $pdo->prepare("SELECT seat_number FROM seats WHERE id = ?");
+        // Cập nhật trạng thái ghế
+        $stmtUpdateSeat = $pdo->prepare("UPDATE seats SET sStatus = 'Đã đặt' WHERE seat_id = ?");
+        $stmtGetSeat = $pdo->prepare("SELECT seat_number FROM seats WHERE seat_id = ?");
 
         foreach ($selected_seats as $seat_id) {
             $stmtUpdateSeat->execute([$seat_id]);
@@ -64,18 +67,53 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
             }
         }
 
+        // ✅ Tạo ticket_id dạng T0 + số thứ tự
+        $stmtCount = $pdo->query("SELECT COUNT(*) AS total FROM tickets");
+        $totalTickets = $stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
+        $ticket_id = 'T0' . ($totalTickets + 1);
+
+        $payment_id = $vnp_TxnRef;
+        $created_at = date("Y-m-d H:i:s");
+        $quantity = count($selected_seats);
+
+        // ✅ Insert vào bảng tickets
+        $stmtInsertTicket = $pdo->prepare("
+            INSERT INTO tickets (ticket_id, payment_id, event_id, created_at, quantity)
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $stmtInsertTicket->execute([
+            $ticket_id,
+            $payment_session['payment_id'],
+            $event_id,
+            $created_at,
+            $quantity
+        ]);
+
+        // ✅ Insert vào bảng ticket_seats
+        $stmtInsertSeat = $pdo->prepare("
+            INSERT INTO ticket_seats (ticket_seat_id, ticket_id, seat_id)
+            VALUES (?, ?, ?)
+        ");
+        foreach ($selected_seats as $seat_id) {
+            $ticket_seat_id = $ticket_id . $seat_id;
+            $stmtInsertSeat->execute([
+                $ticket_seat_id,
+                $ticket_id,
+                $seat_id
+            ]);
+        }
+
         unset($_SESSION['payment']);
         echo "<script>
             alert('Đặt vé thành công!');
             window.location.href = '../pages/my_tickets.php';
         </script>";
-
     } else {
-        // Thanh toán thất bại hoặc huỷ
+        // ❌ Thanh toán thất bại hoặc huỷ
         $stmtCancel = $pdo->prepare("
-            UPDATE purchased_tickets 
-            SET payment_status = 'cancel'
-            WHERE user_id = ? AND event_id = ? AND payment_status = 'pending'
+            UPDATE payments 
+            SET pStatus = 'cancel'
+            WHERE user_id = ? AND event_id = ? AND pStatus = 'pending'
         ");
         $stmtCancel->execute([
             $_SESSION['user_id'],
@@ -89,11 +127,11 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
         </script>";
     }
 } else {
-    // Thanh toán thất bại hoặc huỷ
+    // ❌ Trường hợp sai hash hoặc không có session
     $stmtCancel = $pdo->prepare("
         UPDATE purchased_tickets 
-        SET payment_status = 'cancel'
-        WHERE user_id = ? AND event_id = ? AND payment_status = 'pending'
+        SET pStatus = 'cancel'
+        WHERE user_id = ? AND event_id = ? AND pStatus = 'pending'
     ");
     $stmtCancel->execute([
         $_SESSION['user_id'],
@@ -102,9 +140,8 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
 
     unset($_SESSION['payment']);
     echo "<script>
-            alert('Đã hủy đặt vé!');
-            window.location.href = '../pages/home.php';
-        </script>";
-
+        alert('Đã hủy đặt vé!');
+        window.location.href = '../pages/home.php';
+    </script>";
 }
 ?>

@@ -20,7 +20,7 @@
               <!-- Họ và tên -->
               <div class="mb-3">
                 <label>Họ và tên</label>
-                <input class="form-control" name="full_name" required placeholder="Điền đầy đủ họ tên của bạn">
+                <input class="form-control" name="fullname" required placeholder="Điền đầy đủ họ tên của bạn">
                 <div class="invalid-feedback"></div>
               </div>
 
@@ -41,8 +41,8 @@
               <!-- Phương thức thanh toán -->
               <div class="mb-3">
                 <label>Phương thức thanh toán</label>
-                <select class="form-select" name="payment_method" required>
-                  <option value="Vnpay">Vnpay</option>
+                <select class="form-select" name="method" required>
+                  <option value="vnpay">Vnpay</option>
                   <option value="bank">Chuyển khoản ngân hàng</option>
                 </select>
               </div>
