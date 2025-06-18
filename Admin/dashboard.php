@@ -12,50 +12,9 @@ if (!isset($_SESSION['admin_id'])) {
     <meta charset="UTF-8">
     <title>Dashboard Admin</title>
     <!-- Bootstrap & Icons -->
+    <link rel="stylesheet" href="css/dashborad.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body {
-            min-height: 100vh;
-            display: flex;
-            overflow-x: hidden;
-        }
-
-        .sidebar {
-            width: 250px;
-            background-color: #002366;
-            color: #fff;
-            flex-shrink: 0;
-            min-height: 100vh;
-        }
-
-        .sidebar .nav-link {
-            color: #fff;
-        }
-
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            background-color: #003399;
-            color: #ffcc00;
-        }
-
-        .sidebar .logo {
-            font-size: 22px;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid #555;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            padding: 30px;
-            background-color: #f8f9fa;
-        }
-
-        .card-icon {
-            font-size: 30px;
-            color: #007bff;
-        }
-    </style>
 </head>
 <body>
 
