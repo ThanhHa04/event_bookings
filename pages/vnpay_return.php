@@ -113,11 +113,11 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
         $stmtCancel = $pdo->prepare("
             UPDATE payments 
             SET pStatus = 'cancel'
-            WHERE user_id = ? AND event_id = ? AND pStatus = 'pending'
+            WHERE user_id = ? AND payment_id = ? AND pStatus = 'pending'
         ");
         $stmtCancel->execute([
             $_SESSION['user_id'],
-            $event_id
+            $payment_session['payment_id']
         ]);
 
         unset($_SESSION['payment']);
@@ -131,11 +131,11 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
     $stmtCancel = $pdo->prepare("
         UPDATE purchased_tickets 
         SET pStatus = 'cancel'
-        WHERE user_id = ? AND event_id = ? AND pStatus = 'pending'
+        WHERE user_id = ? AND payment_id = ? AND pStatus = 'pending'
     ");
     $stmtCancel->execute([
         $_SESSION['user_id'],
-        $event_id
+        $payment_session['payment_id']
     ]);
 
     unset($_SESSION['payment']);
