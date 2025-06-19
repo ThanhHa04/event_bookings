@@ -243,11 +243,15 @@ header {
     padding-top: 0 !important;
 
 }
+.carousel-inner{
+    width:100%;
+}
 
 .carousel img {
     height: 518px;
+    width: 100%;
+    object-fit: cover;
     border-radius: 10px;
-    width: auto;
 }
 
 .carousel-indicators button {
@@ -306,18 +310,29 @@ header {
 
 .top-row {
     display: flex;
+    width:100%;
     gap: 10px;
+}
+
+.top-row a{
+    width:100%;
 }
 
 .top-row img {
     width: 100%;
-    height: auto;
+    height: 333px;
+    object-fit: cover;
     border-radius: 8px;
 }
 
 .bottom-row {
     display: flex;
+    width:100%;
     gap: 10px;
+}
+
+.bottom-row a{
+    width:25%;
 }
 
 .bottom-row img {

@@ -19,15 +19,18 @@ $users = $stmt->fetchAll();
     <title>Quản lý tài khoản</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
-<div class="container mt-5">
+    <?php $current_page = 'users'; include "includes/menu.php"; ?>
+    <div class="container mt-5">
+    
     <h2 class="mb-4"><i class="bi bi-person"></i> Quản lý tài khoản</h2>
 
     <table class="table table-bordered table-hover table-striped">
         <thead class="table-dark">
             <tr>
-                <th>#</th>
+                <th>User id</th>
                 <th>Họ tên</th>
                 <th>Email</th>
                 <th>Xác minh</th>

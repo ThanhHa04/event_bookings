@@ -2,21 +2,24 @@
 session_start();
 require_once "../config.php";
 require_once "../includes/db_connect.php";
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 $now = new DateTime();
 
 // Lấy tất cả event để kiểm tra trạng thái
-$stmtStatus = $pdo->query("SELECT event_id, start_time FROM events");
+$stmtStatus = $pdo->query("SELECT event_id, start_time, duration FROM events");
 $allEvents = $stmtStatus->fetchAll(PDO::FETCH_ASSOC);
 
 foreach ($allEvents as $event) {
     $start = new DateTime($event['start_time']);
-    $end = clone $start;
+    $end = (clone $start)->modify("+{$event['duration']} hours");
 
     if ($now < $start) {
         $newStatus = "Chưa diễn ra";
+    } elseif ($now >= $start && $now <= $end) {
+        $newStatus = "Đang diễn ra";
     } else {
-        $newStatus = "Đã diễn ra";
+        $newStatus = "Đã kết thúc";
     }
 
     $stmtCheck = $pdo->prepare("SELECT eStatus FROM events WHERE event_id = ?");
