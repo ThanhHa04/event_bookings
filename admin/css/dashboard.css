@@ -120,3 +120,13 @@ body {
     max-height: 220px;
     border-radius: 6px;
 }
+
+.nav-link.active {
+    background-color: #385a94 !important;
+    color: white !important;
+}
+
+.page-item.active .page-link {
+    background-color: #385a94 !important;
+    color: white !important;
+}

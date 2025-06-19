@@ -1,85 +1,98 @@
 <?php
 session_start();
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: login.php");
+    exit();
+}
 require_once "../includes/db_connect.php";
 
-// Lấy dữ liệu từ form
-$event_id     = $_POST['event_id'];
-$event_name   = $_POST['event_name'];
-$start_time   = $_POST['start_time'];
-$price        = $_POST['price'];
-$duration     = $_POST['duration'];
-$location     = $_POST['location'];
-$total_seats  = (int)$_POST['total_seats'];
-$event_type   = $_POST['event_type'];
-$eStatus      = $_POST['eStatus'];
-$old_img      = $_POST['old_event_img'];
-$new_img_link = trim($_POST['event_img_link'] ?? '');
-$event_img    = $old_img;
-
-// Xử lý ảnh upload
-if (isset($_FILES['event_img']) && $_FILES['event_img']['error'] === UPLOAD_ERR_OK) {
-    $uploadDir = "../assets/images/";
-    $filename = uniqid("event_") . "_" . basename($_FILES["event_img"]["name"]);
-    $targetFile = $uploadDir . $filename;
-
-    if (move_uploaded_file($_FILES["event_img"]["tmp_name"], $targetFile)) {
-        $event_img = $filename;
-    }
-} else if (!empty($new_img_link) && $new_img_link !== $old_img) {
-    $event_img = $new_img_link;
+function generateEventId($pdo) {
+    $stmt = $pdo->query("SELECT MAX(CAST(SUBSTRING(event_id, 2) AS UNSIGNED)) FROM events");
+    $maxId = $stmt->fetchColumn();
+    $nextId = (int)$maxId + 1;
+    return 'E' . str_pad($nextId, 2, '0', STR_PAD_LEFT);
 }
 
-// 1. Lấy số lượng ghế cũ
-$stmt = $pdo->prepare("SELECT total_seats FROM events WHERE event_id = ?");
-$stmt->execute([$event_id]);
-$currentData = $stmt->fetch(PDO::FETCH_ASSOC);
-$old_total_seats = (int)$currentData['total_seats'];
-$seats_changed = ($old_total_seats !== $total_seats);
+$event_id = $_POST['event_id'] ?? '';
+$event_name = $_POST['event_name'] ?? '';
+$start_time = $_POST['start_time'] ?? '';
+$price = $_POST['price'] ?? 0;
+$duration = $_POST['duration'] ?? 1;
+$location = $_POST['location'] ?? '';
+$total_seats = $_POST['total_seats'] ?? 50;
+$event_type = $_POST['event_type'] ?? 'music';
+$eStatus = $_POST['eStatus'] ?? 'Chưa diễn ra';
 
-// 2. Nếu số ghế thay đổi, kiểm tra có ghế đã được đặt chưa
-if ($seats_changed) {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM seats WHERE event_id = ? AND sStatus != 'Còn trống'");
-    $stmt->execute([$event_id]);
-    $occupied = $stmt->fetchColumn();
-
-    if ($occupied > 0) {
-        $_SESSION['error'] = "Không thể thay đổi số lượng ghế vì có ghế đã được đặt!";
-        header("Location: events.php");
-        exit;
+// Xử lý hình ảnh
+$event_img = $_POST['old_event_img'] ?? '';
+if (!empty($_FILES['event_img']['name'])) {
+    $uploadDir = '../assets/images/';
+    $uploadFile = $uploadDir . basename($_FILES['event_img']['name']);
+    if (move_uploaded_file($_FILES['event_img']['tmp_name'], $uploadFile)) {
+        $event_img = basename($_FILES['event_img']['name']);
     }
+} elseif (!empty($_POST['event_img_link'])) {
+    $event_img = $_POST['event_img_link'];
+}
 
-    // Nếu không có ghế đã đặt thì xoá ghế cũ
-    $pdo->prepare("DELETE FROM seats WHERE event_id = ?")->execute([$event_id]);
+// Kiểm tra event_id đã tồn tại hay chưa
+$stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM events WHERE event_id = ?");
+$stmtCheck->execute([$event_id]);
+$isUpdate = $stmtCheck->fetchColumn() > 0;
 
-    // Tạo lại danh sách ghế mới
+if ($isUpdate) {
+    // Cập nhật sự kiện
+    $stmt = $pdo->prepare("UPDATE events SET event_name=?, start_time=?, price=?, duration=?, location=?, total_seats=?, event_type=?, eStatus=?, event_img=? WHERE event_id=?");
+    $success = $stmt->execute([
+        $event_name,
+        $start_time,
+        $price,
+        $duration,
+        $location,
+        $total_seats,
+        $event_type,
+        $eStatus,
+        $event_img,
+        $event_id
+    ]);
+
+    $_SESSION['success'] = $success ? "Cập nhật sự kiện thành công!" : "Có lỗi khi cập nhật.";
+} else {
+    // Thêm sự kiện mới
+    $event_id = generateEventId($pdo);
+
+    $stmt = $pdo->prepare("INSERT INTO events (event_id, event_name, start_time, price, duration, location, total_seats, event_type, eStatus, event_img) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $success = $stmt->execute([
+        $event_id,
+        $event_name,
+        $start_time,
+        $price,
+        $duration,
+        $location,
+        $total_seats,
+        $event_type,
+        $eStatus,
+        $event_img
+    ]);
+
+    // Tạo danh sách ghế
     $vipCount = floor($total_seats * 0.2);
     $regularCount = $total_seats - $vipCount;
-
     $row = 'A';
     $col = 1;
-
-    function formatSeatNumber($r, $c) {
-        return $r . $c;
-    }
-
-    function formatSeatId($i) {
-        return 'S' . str_pad($i, 3, '0', STR_PAD_LEFT);
-    }
+    $seatIndex = 1;
 
     $stmt = $pdo->query("SELECT MAX(CAST(SUBSTRING(seat_id, 2) AS UNSIGNED)) AS max_id FROM seats");
     $max = $stmt->fetchColumn();
     $seatIndex = ($max ?? 0) + 1;
 
-    $insertStmt = $pdo->prepare("
-        INSERT INTO seats (seat_id, event_id, seat_type, seat_number, sStatus, seat_price)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ");
+    $insertStmt = $pdo->prepare("INSERT INTO seats (seat_id, event_id, seat_type, seat_number, sStatus, seat_price) VALUES (?, ?, ?, ?, ?, ?)");
 
     for ($i = 0; $i < $vipCount; $i++) {
-        $seat_number = formatSeatNumber($row, $col++);
+        $seat_number = $row . $col++;
         if ($col > 10) { $col = 1; $row++; }
         $insertStmt->execute([
-            formatSeatId($seatIndex++),
+            'S' . str_pad($seatIndex++, 3, '0', STR_PAD_LEFT),
             $event_id,
             'vip',
             $seat_number,
@@ -89,10 +102,10 @@ if ($seats_changed) {
     }
 
     for ($i = 0; $i < $regularCount; $i++) {
-        $seat_number = formatSeatNumber($row, $col++);
+        $seat_number = $row . $col++;
         if ($col > 10) { $col = 1; $row++; }
         $insertStmt->execute([
-            formatSeatId($seatIndex++),
+            'S' . str_pad($seatIndex++, 3, '0', STR_PAD_LEFT),
             $event_id,
             'normal',
             $seat_number,
@@ -100,44 +113,9 @@ if ($seats_changed) {
             $price
         ]);
     }
-}
 
-// 3. Cập nhật thông tin sự kiện (luôn thực hiện dù có thay đổi số ghế hay không)
-$stmt = $pdo->prepare("
-    UPDATE events SET
-        event_name = :event_name,
-        start_time = :start_time,
-        price = :price,
-        duration = :duration,
-        location = :location,
-        total_seats = :total_seats,
-        event_type = :event_type,
-        eStatus = :eStatus,
-        event_img = :event_img
-    WHERE event_id = :event_id
-");
-
-$success = $stmt->execute([
-    'event_name'   => $event_name,
-    'start_time'   => $start_time,
-    'price'        => $price,
-    'duration'     => $duration,
-    'location'     => $location,
-    'total_seats'  => $total_seats,
-    'event_type'   => $event_type,
-    'eStatus'      => $eStatus,
-    'event_img'    => $event_img,
-    'event_id'     => $event_id
-]);
-
-if ($success) {
-    $_SESSION['success'] = $seats_changed
-        ? "Cập nhật sự kiện và số lượng ghế thành công!"
-        : "Cập nhật sự kiện thành công!";
-} else {
-    $_SESSION['error'] = "Có lỗi xảy ra khi cập nhật sự kiện.";
+    $_SESSION['success'] = $success ? "Tạo sự kiện mới thành công!" : "Có lỗi khi tạo sự kiện.";
 }
 
 header("Location: events.php");
-exit;
-?>
+exit();

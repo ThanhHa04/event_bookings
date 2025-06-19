@@ -36,6 +36,7 @@
               </div>
               <div class="mb-2">
                 <label for="totalSeats" class="form-label">Tổng số ghế</label>
+                <p id="seatWarning" class="text-danger mt-1" style="display: none;">Không thể thay đổi số lượng ghế vì sự kiện đã có người đặt.</p>
                 <select class="form-select" id="totalSeats" name="total_seats">
                   <option value="50">50</option>
                   <option value="100">100</option>
@@ -54,8 +55,8 @@
 
             <div class="col-md-6">
               <div class="text-center mb-2">
-                <label class="form-label">Ảnh sự kiện (upload)</label>
-                <img id="eventImagePreview" src="" alt="Ảnh sự kiện" class="img-fluid rounded shadow mb-2" style="max-height: 200px;">
+                <label class="form-label"></label>
+                <img id="eventImagePreview" src="" alt="Ảnh sự kiện" class="img-fluid rounded shadow mb-2" style="height: auto; width:100%; object-fit:cover;">
                 <input type="file" class="form-control mb-2" id="eventImageInput" name="event_img">
               </div>
               <div class="mb-2">
@@ -75,9 +76,12 @@
           </div>
         </div>
 
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <div class="modal-footer d-flex justify-content-between align-items-center">
+          <div id="seats-warning" class="text-danger fw-semibold"></div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          </div>
         </div>
       </form>
     </div>
