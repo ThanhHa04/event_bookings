@@ -17,8 +17,8 @@ $totalUsers = $stmt->fetch()['total_users'];
 $stmt = $pdo->query("SELECT COUNT(*) AS total_events FROM events");
 $totalEvents = $stmt->fetch()['total_events'];
 
-$stmt = $pdo->query("SELECT COUNT(*) AS total_tickets FROM tickets");
-$totalTickets = $stmt->fetch()['total_tickets'];
+$stmt = $pdo->query("SELECT COUNT(*) AS total_orders FROM orders");
+$totalorders = $stmt->fetch()['total_orders'];
 
 $stmt = $pdo->query("SELECT SUM(amount) AS total_paid FROM payments WHERE pStatus = 'paid'");
 $totalPaids = $stmt->fetch()['total_paid'] ?? 0;
@@ -145,8 +145,8 @@ ksort($yearRevenue);
                 <div class="card-body d-flex align-items-center">
                     <div class="me-3 card-icon"><i class="bi bi-ticket-perforated"></i></div>
                     <div>
-                        <h5 class="card-title mb-1"><a href="tickets.php">Vé đã bán</a></h5>
-                        <p class="card-text text-muted"><?= $totalTickets ?> vé</p>
+                        <h5 class="card-title mb-1"><a href="orders.php">Vé đã bán</a></h5>
+                        <p class="card-text text-muted"><?= $totalorders ?> vé</p>
                     </div>
                 </div>
             </div>
@@ -154,9 +154,9 @@ ksort($yearRevenue);
         <div class="col-md-3">
             <div class="card shadow-sm border-0">
                 <div class="card-body d-flex align-items-center">
-                    <div class="me-3 card-icon"><i class="bi bi-piggy-bank"></i></div>
+                    <div class="me-3 card-icon"><i class="bi bi-bar-chart-line"></i></div>
                     <div>
-                        <h5 class="card-title mb-1"><a href="revenue.php">Doanh thu</a></h5>
+                        <h5 class="card-title mb-1"><a href="revenue.php">Tổng doanh thu</a></h5>
                         <p class="card-text text-muted"><?= number_format($totalPaids, 0, ',', '.') ?> VND</p>
                     </div>
                 </div>

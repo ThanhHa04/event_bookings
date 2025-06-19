@@ -39,7 +39,7 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
     if ($vnp_ResponseCode == '00' && $vnp_TransactionStatus == '00') {
         // ✅ Thanh toán thành công
 
-        // Cập nhật trạng thái purchased_tickets
+        // Cập nhật trạng thái purchased_orders
         $stmtUpdateTicket = $pdo->prepare("
             UPDATE payments 
             SET pStatus = 'paid', vnp_transaction_no = ?, payment_time = NOW()
@@ -67,40 +67,44 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
             }
         }
 
-        // ✅ Tạo ticket_id dạng T0 + số thứ tự
-        $stmtCount = $pdo->query("SELECT COUNT(*) AS total FROM tickets");
-        $totalTickets = $stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
-        $ticket_id = 'T0' . ($totalTickets + 1);
+        // ✅ Tạo order_id dạng O0 + số thứ tự
+        $stmtCount = $pdo->query("SELECT COUNT(*) AS total FROM orders");
+        $totalorders = $stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
+        $order_id = 'O0' . ($totalorders + 1);
 
         $payment_id = $vnp_TxnRef;
         $created_at = date("Y-m-d H:i:s");
         $quantity = count($selected_seats);
 
-        // ✅ Insert vào bảng tickets
+        // ✅ Insert vào bảng orders
         $stmtInsertTicket = $pdo->prepare("
-            INSERT INTO tickets (ticket_id, payment_id, event_id, created_at, quantity)
+            INSERT INTO orders (order_id, payment_id, event_id, created_at, quantity)
             VALUES (?, ?, ?, ?, ?)
         ");
         $stmtInsertTicket->execute([
-            $ticket_id,
+            $order_id,
             $payment_session['payment_id'],
             $event_id,
             $created_at,
             $quantity
         ]);
 
-        // ✅ Insert vào bảng ticket_seats
+        $stmtCount = $pdo->query("SELECT COUNT(*) AS total FROM tickets");
+        $currentTickets = (int) $stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
         $stmtInsertSeat = $pdo->prepare("
-            INSERT INTO ticket_seats (ticket_seat_id, ticket_id, seat_id)
-            VALUES (?, ?, ?)
+            INSERT INTO tickets (ticket_id, order_id, seat_id, tStatus)
+            VALUES (?, ?, ?, ?)
         ");
+        $index = 1;
         foreach ($selected_seats as $seat_id) {
-            $ticket_seat_id = $ticket_id . $seat_id;
+            $new_ticket_id = 'T0' . ($currentTickets + $index);
             $stmtInsertSeat->execute([
-                $ticket_seat_id,
-                $ticket_id,
-                $seat_id
+                $new_ticket_id,
+                $order_id,
+                $seat_id,
+                'Thành công'
             ]);
+            $index++;
         }
 
         unset($_SESSION['payment']);
@@ -129,7 +133,7 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
 } else {
     // ❌ Trường hợp sai hash hoặc không có session
     $stmtCancel = $pdo->prepare("
-        UPDATE purchased_tickets 
+        UPDATE purchased_orders 
         SET pStatus = 'cancel'
         WHERE user_id = ? AND payment_id = ? AND pStatus = 'pending'
     ");

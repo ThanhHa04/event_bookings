@@ -12,13 +12,13 @@ $status = $_GET['status'] ?? 'all';
 $stmt = $pdo->prepare("
     SELECT 
         p.payment_id, p.user_id, p.payment_at, p.method, p.amount, p.fullname, p.email, p.phone,
-        t.event_id, t.quantity, ts.seat_id, s.seat_number,
-        e.event_name, e.start_time, e.event_img, e.eStatus
+        o.event_id, o.quantity, t.seat_id, s.seat_number,
+        e.event_name, e.start_time, e.event_img, e.eStatus, t.tStatus
     FROM payments p
-    LEFT JOIN tickets t ON p.payment_id = t.payment_id
-    LEFT JOIN ticket_seats ts ON t.ticket_id = ts.ticket_id
-    LEFT JOIN seats s ON ts.seat_id = s.seat_id
-    LEFT JOIN events e ON t.event_id = e.event_id
+    LEFT JOIN orders o ON p.payment_id = o.payment_id
+    LEFT JOIN tickets t ON o.order_id = t.order_id
+    LEFT JOIN seats s ON t.seat_id = s.seat_id
+    LEFT JOIN events e ON o.event_id = e.event_id
     WHERE p.user_id = ?
     " . ($status !== 'all' ? " AND e.eStatus = ?" : "") . "
     ORDER BY " . ($status === 'all' ? 'e.start_time ASC' : 'p.payment_at DESC')."
@@ -35,7 +35,7 @@ if ($status !== 'all') {
     $params[] = $statusMap[$status] ?? '';
 }
 $stmt->execute($params);
-$tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -73,10 +73,10 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </ul>
 
     <?php
-    if (empty($tickets)) {
+    if (empty($orders)) {
         echo "<p>Bạn chưa có vé nào trong mục này.</p>";
     }
-    foreach ($tickets as $ticket) {
+    foreach ($orders as $ticket) {
         $stmtEvent = $pdo->prepare("SELECT * FROM events WHERE event_id = ?");
         $stmtEvent->execute([$ticket["event_id"]]);
         $event = $stmtEvent->fetch(PDO::FETCH_ASSOC);
@@ -89,7 +89,7 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <img src="<?= $img ?>" alt="Ảnh sự kiện">
         <div class="card-content">
             <div class="card-left">
-                <h5><?= htmlspecialchars($event["event_name"]) ?></h5>
+                <h5><strong><?= htmlspecialchars($event["event_name"]) ?></strong></h5>
                 <p>Ngày tổ chức: <?= htmlspecialchars($event["start_time"]) ?></p>
                 <p>Ghế: <?= htmlspecialchars($ticket['seat_number']) ?></p>
                 <p>Người mua: <?= htmlspecialchars($ticket["fullname"]) ?></p>

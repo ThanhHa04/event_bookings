@@ -12,11 +12,11 @@
         <a class="nav-link <?= ($current_page == 'events') ? 'active' : '' ?>" href="events.php">
             <i class="bi bi-calendar-event"></i> Quản lý sự kiện
         </a>
-        <a class="nav-link <?= ($current_page == 'tickets') ? 'active' : '' ?>" href="tickets.php">
+        <a class="nav-link <?= ($current_page == 'orders') ? 'active' : '' ?>" href="orders.php">
             <i class="bi bi-ticket-perforated"></i> Quản lý đơn hàng
         </a>
-        <a class="nav-link <?= ($current_page == 'revenue') ? 'active' : '' ?>" href="revenue.php">
-            <i class="bi bi-bar-chart-line"></i> Doanh thu
+        <a class="nav-link <?= ($current_page == 'history') ? 'active' : '' ?>" href="history.php">
+            <i class="bi bi-check-circle"></i> Quản lý thanh toán
         </a>
         <a class="nav-link" href="logout.php">
             <i class="bi bi-box-arrow-right"></i> Đăng xuất

@@ -41,7 +41,7 @@ $specialQuery = "SELECT * FROM events WHERE start_time >= CURDATE() AND eStatus 
 $specialResult = mysqli_query($conn, $specialQuery);
 
 // Bước 1: Lấy các event được đặt nhiều nhất (tối đa 6)
-$popularQuery = " SELECT e.event_id, e.event_img, e.event_name FROM events e JOIN ( SELECT event_id, COUNT(*) AS total FROM tickets GROUP BY event_id ORDER BY total DESC ) AS pt ON pt.event_id = e.event_id WHERE e.eStatus = 'Chưa diễn ra' ORDER BY pt.total DESC LIMIT 6";
+$popularQuery = " SELECT e.event_id, e.event_img, e.event_name FROM events e JOIN ( SELECT event_id, COUNT(*) AS total FROM orders GROUP BY event_id ORDER BY total DESC ) AS pt ON pt.event_id = e.event_id WHERE e.eStatus = 'Chưa diễn ra' ORDER BY pt.total DESC LIMIT 6";
 $stmt = $pdo->query($popularQuery);
 $popularEvents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $needed = 6 - count($popularEvents);
