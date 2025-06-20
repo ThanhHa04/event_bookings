@@ -57,7 +57,7 @@ $maxRow = $stmtMax->fetch(PDO::FETCH_ASSOC);
 $nextIndex = isset($maxRow['max_index']) ? (int)$maxRow['max_index'] + 1 : 1;
 $payment_id = 'P0' . $nextIndex;
 
-// Ghi dữ liệu "chờ thanh toán" vào `purchased_tickets`
+// Ghi dữ liệu "chờ thanh toán" vào `payments`
 $stmtInsertPayment = $pdo->prepare("
     INSERT INTO payments (
         payment_id, user_id, payment_at, method, amount, fullname, email, phone, pStatus, vnp_transaction_no
