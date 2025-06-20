@@ -5,7 +5,7 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-require_once "../includes/db_connect.php"; // đảm bảo đường dẫn đúng với dự án bạn
+require_once "../includes/db_connect.php"; 
 
 // Lấy danh sách user
 $stmt = $pdo->query("SELECT user_id, fullname, email, email_verified_at FROM users ORDER BY user_id DESC");
