@@ -41,7 +41,7 @@ $eventIdsWithBookedSeats = $bookedStmt->fetchAll(PDO::FETCH_COLUMN);
 
 $maxIdStmt = $pdo->query("SELECT MAX(CAST(SUBSTRING(event_id, 2) AS UNSIGNED)) FROM events");
 $maxId = $maxIdStmt->fetchColumn();
-$nextEventId = 'E0' . str_pad((int)$maxId, STR_PAD_LEFT);
+$nextEventId = 'E0' . str_pad((int)$maxId + 1, 2,'0', STR_PAD_LEFT);
 
 $selectedEvent = null;
 $seats = [];

@@ -10,7 +10,7 @@ function generateEventId($pdo) {
     $stmt = $pdo->query("SELECT MAX(CAST(SUBSTRING(event_id, 2) AS UNSIGNED)) FROM events");
     $maxId = $stmt->fetchColumn();
     $nextId = (int)$maxId + 1;
-    return 'E' . str_pad($nextId, 2, '0', STR_PAD_LEFT);
+    return 'E0' . str_pad($nextId, 2, '0', STR_PAD_LEFT);
 }
 
 $event_id = $_POST['event_id'] ?? '';
