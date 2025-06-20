@@ -5,7 +5,10 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
+// Lấy danh sách user
+
 require_once "../includes/db_connect.php";
+
 $stmt = $pdo->query("SELECT user_id, fullname, email, email_verified_at FROM users ORDER BY user_id DESC");
 $users = $stmt->fetchAll();
 ?>
