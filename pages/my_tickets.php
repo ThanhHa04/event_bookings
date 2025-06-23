@@ -8,8 +8,18 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 $status = $_GET['status'] ?? 'all';
+$estatus = $_GET['estatus'] ?? 'all';
+$tstatus = $_GET['tstatus'] ?? 'all';
 
-$stmt = $pdo->prepare("
+$statusMap = [
+    'upcoming' => 'Chưa diễn ra',
+    'active' => 'Đang diễn ra',
+    'ended' => 'Đã kết thúc',
+    'cancelled' => 'Đã hủy',
+];
+
+// Xây dựng câu truy vấn động
+$query = "
     SELECT 
         p.payment_id, p.user_id, p.payment_at, p.method, p.amount, p.fullname, p.email, p.phone,
         o.event_id, o.quantity, t.seat_id, s.seat_number,
@@ -20,24 +30,30 @@ $stmt = $pdo->prepare("
     LEFT JOIN seats s ON t.seat_id = s.seat_id
     LEFT JOIN events e ON o.event_id = e.event_id
     WHERE p.user_id = ?
-    " . ($status !== 'all' ? " AND e.eStatus = ?" : "") . "
-    ORDER BY " . ($status === 'all' ? 'e.start_time ASC' : 'p.payment_at DESC')."
-");
+";
 
-$statusMap = [
-    'upcoming' => 'Chưa diễn ra',
-    'active' => 'Đang diễn ra',
-    'ended' => 'Đã kết thúc',
-    'cancelled' => 'Đã hủy',
-];
+// Thêm điều kiện nếu có
 $params = [$user_id];
+
 if ($status !== 'all') {
+    $query .= " AND e.eStatus = ?";
     $params[] = $statusMap[$status] ?? '';
 }
+
+if ($tstatus !== 'all') {
+    $query .= " AND t.tStatus = ?";
+    $params[] = $tstatus;
+}
+
+// Thêm sắp xếp
+$query .= ($status === 'all' ? " ORDER BY e.start_time ASC" : " ORDER BY p.payment_at DESC");
+
+// Chuẩn bị và thực thi
+$stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -46,6 +62,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Vé đã mua</title>
     <link rel="icon" href="../assets/images/icove.png" type="image/png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="../assets/css/ticket.css">
 </head>
 <body>
@@ -55,20 +72,14 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- Tabs trạng thái -->
     <ul class="nav nav-tabs mb-4">
-        <li class="nav-item">
-            <a class="nav-link <?= $status == 'all' ? 'active' : '' ?>" href="?status=all">Tất cả</a>
+          <li class="nav-item">
+            <a class="nav-link <?= $tstatus == 'all' ? 'active' : '' ?>" href="?tstatus=all&estatus=<?= $estatus ?>">Tất cả</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= $status == 'upcoming' ? 'active' : '' ?>" href="?status=upcoming">Chưa diễn ra</a>
+            <a class="nav-link <?= $tstatus == 'Thành công' ? 'active' : '' ?>" href="?tstatus=Thành%20công&estatus=<?= $estatus ?>">Thành công</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= $status == 'active' ? 'active' : '' ?>" href="?status=active">Đang diễn ra</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <?= $status == 'ended' ? 'active' : '' ?>" href="?status=ended">Đã kết thúc</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <?= $status == 'cancelled' ? 'active' : '' ?>" href="?status=cancelled">Đã hủy</a>
+            <a class="nav-link <?= $tstatus == 'Đã hủy' ? 'active' : '' ?>" href="?tstatus=Đã%20hủy&estatus=<?= $estatus ?>">Đã hủy</a>
         </li>
     </ul>
 
@@ -89,29 +100,28 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <img src="<?= $img ?>" alt="Ảnh sự kiện">
         <div class="card-content">
             <div class="card-left">
-                <h5><strong><?= htmlspecialchars($event["event_name"]) ?></strong></h5>
+                <h5><strong><?= htmlspecialchars($event["event_name"]) ?></strong></h5><br>
                 <p>Ngày tổ chức: <?= htmlspecialchars($event["start_time"]) ?></p>
+                <p>Email: <?= htmlspecialchars($ticket["email"]) ?> | SĐT: <?= htmlspecialchars($ticket["phone"]) ?></p>
                 <p>Ghế: <?= htmlspecialchars($ticket['seat_number']) ?></p>
                 <p>Người mua: <?= htmlspecialchars($ticket["fullname"]) ?></p>
-                <p>Email: <?= htmlspecialchars($ticket["email"]) ?> | SĐT: <?= htmlspecialchars($ticket["phone"]) ?></p>
+                <p>Trạng thái sự kiện: <?= htmlspecialchars($ticket["eStatus"]) ?></p>
             </div>
             <div class="card-right">
-                <span class="float-end">
-                    <?php
-                        $eStatus = $ticket['eStatus'];
-                        if ($eStatus == 'Chưa diễn ra') {
-                            echo '<span class="badge bg-info text-dark">Chưa diễn ra</span>';
-                        } elseif ($eStatus == 'Đang diễn ra') {
-                            echo '<span class="badge bg-success">Đang diễn ra</span>';
-                        } elseif ($eStatus == 'Đã kết thúc') {
-                            echo '<span class="badge bg-secondary">Đã kết thúc</span>';
-                        } elseif ($eStatus == 'Đã bị hủy') {
-                            echo '<span class="badge bg-danger">Đã hủy</span>';
-                        } else {
-                            echo '<span class="badge bg-warning text-dark">'.htmlspecialchars($eStatus).'</span>';
-                        }
-                    ?>
-                </span>
+                <div class="card-right">    
+                    <span class="float-end">
+                        <?php
+                            $tStatus = $ticket['tStatus'];
+                            if ($tStatus === 'Thành công') {
+                                echo '<span class="badge bg-success">Thành công</span>';
+                            } elseif ($tStatus === 'Đã hủy') {
+                                echo '<span class="badge bg-danger">Đã hủy</span>';
+                            } else {
+                                echo '<span class="badge bg-warning text-dark">'.htmlspecialchars($tStatus).'</span>';
+                            }
+                        ?>
+                    </span>
+            </div>
             </div>
         </div>
     </div>
@@ -121,3 +131,4 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <?php include "../includes/footer.php"; ?>
 </body>
 </html>
+                            

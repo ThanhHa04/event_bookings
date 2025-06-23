@@ -3,7 +3,7 @@
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content shadow">
       <div class="modal-header">
-        <h5 class="modal-title d-flex align-items-center gap-2">Chỉnh sửa sự kiện <span id="eventIdDisplay"></span></h5>
+        <h5 class="modal-title d-flex align-items-center gap-2">Sự kiện <span id="eventIdDisplay"></span></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
       </div>
       <form action="update_event.php" method="POST" enctype="multipart/form-data">

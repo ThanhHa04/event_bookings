@@ -36,7 +36,7 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="booking-info mb-4 text-center">
         <p><strong>Họ tên:</strong> <?= htmlspecialchars($booking["fullname"]) ?> |
-           <strong>Email:</strong> <?= htmlspecialchars($booking["email"]) ?> |
+           <strong>Email:</strong> <?= htmlspecialchars($booking["email"]) ?><br>
            <strong>SĐT:</strong> <?= htmlspecialchars($booking["phone"]) ?> |
            <strong>Phương thức thanh toán:</strong> <?= htmlspecialchars($booking["payment_method"]) ?></p>
     </div>

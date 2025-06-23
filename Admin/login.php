@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <div class="login-wrapper">
         <div class="login-image">
-            <img src="../../../assets/images/logo.png" alt="Login Banner">
+            <img src="../assets/images/logo.png" alt="Login Banner">
         </div>
         
         <div class="login-container">

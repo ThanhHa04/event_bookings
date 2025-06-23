@@ -89,7 +89,7 @@ body {
 
 .event-grid {
     display: flex;
-    gap: 20px;
+    gap: 25px;
     margin: auto;
     flex-wrap: wrap;
 }
@@ -100,8 +100,8 @@ body {
     border: 1px solid #eee;
     border-radius: 8px;
     overflow: hidden;
-    width: 300px;
-    height: 300px;
+    width: 23%;
+    height: 350px;
     position: relative;
 }
 

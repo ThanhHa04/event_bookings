@@ -87,6 +87,7 @@ $visitChunks = array_chunk($visitEvents, 4);
     <?php include "../includes/header.php"; ?>
     <?php include "../includes/login_modal.php"; ?>
     <?php include "../includes/register_modal.php"; ?>
+    <?php include "../includes/forgot_password_modal.php"; ?>
 
     <div class="container mt-3">
         <div id="eventSlider" class="carousel slide mx-auto" data-bs-ride="carousel">

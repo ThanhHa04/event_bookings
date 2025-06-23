@@ -11,14 +11,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
-    if ($user && password_verify($password, $user["password"])) {
-        $_SESSION["user_id"] = $user["user_id"];
-        $_SESSION["fullname"] = $user["fullname"]; 
-        header("Location: ../pages/home.php");
-        exit();
-    } else {
-        header("Location: ../index.php?error=1");
+    if (!$user) {
+        // Email không tồn tại
+        header("Location: ../index.php?error=email");
         exit();
     }
+
+    if (!password_verify($password, $user["password"])) {
+        // Sai mật khẩu
+        header("Location: ../index.php?error=password");
+        exit();
+    }
+
+    // Đăng nhập thành công
+    $_SESSION["user_id"] = $user["user_id"];
+    $_SESSION["fullname"] = $user["fullname"]; 
+    header("Location: ../pages/home.php");
+    exit();
 }
 ?>

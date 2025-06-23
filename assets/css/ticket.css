@@ -35,7 +35,6 @@
 .card-content {
     display: flex;
     justify-content: flex-start;
-    /* không cần space-between */
     align-items: flex-start;
     gap: 20px;
     width: 100%;

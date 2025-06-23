@@ -63,7 +63,7 @@ $seats = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="price-box">
         <p>🎟 Giá vé từ:</p>
-        <h2><?= number_format($event['price']) ?> đ</h2>
+        <h2>VNĐ <?= number_format($event['price']) ?>+</h2>
         </div>
 
         <?php if (isset($_SESSION["user_id"])): ?>

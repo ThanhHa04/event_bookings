@@ -37,7 +37,6 @@ $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
 if ($secureHash === $vnp_SecureHash && $payment_session) {
     if ($vnp_ResponseCode == '00' && $vnp_TransactionStatus == '00') {
-        // ✅ Thanh toán thành công
 
         // Cập nhật trạng thái purchased_orders
         $stmtUpdateTicket = $pdo->prepare("
@@ -67,7 +66,7 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
             }
         }
 
-        // ✅ Tạo order_id dạng O0 + số thứ tự
+        // Tạo order_id dạng O0 + số thứ tự
         $stmtCount = $pdo->query("SELECT COUNT(*) AS total FROM orders");
         $totalorders = $stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
         $order_id = 'O0' . ($totalorders + 1);
@@ -76,7 +75,7 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
         $created_at = date("Y-m-d H:i:s");
         $quantity = count($selected_seats);
 
-        // ✅ Insert vào bảng orders
+        // Insert vào bảng orders
         $stmtInsertTicket = $pdo->prepare("
             INSERT INTO orders (order_id, payment_id, event_id, created_at, quantity)
             VALUES (?, ?, ?, ?, ?)
@@ -113,7 +112,7 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
             window.location.href = '../pages/my_tickets.php';
         </script>";
     } else {
-        // ❌ Thanh toán thất bại hoặc huỷ
+        // Thanh toán thất bại hoặc huỷ
         $stmtCancel = $pdo->prepare("
             UPDATE payments 
             SET pStatus = 'cancel'
@@ -125,13 +124,13 @@ if ($secureHash === $vnp_SecureHash && $payment_session) {
         ]);
 
         unset($_SESSION['payment']);
-        echo "<script>
+        echo "<script>  
             alert('Đã hủy đặt vé!');
             window.location.href = '../pages/home.php';
         </script>";
     }
 } else {
-    // ❌ Trường hợp sai hash hoặc không có session
+    // Trường hợp sai hash hoặc không có session
     $stmtCancel = $pdo->prepare("
         UPDATE purchased_orders 
         SET pStatus = 'cancel'
