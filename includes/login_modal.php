@@ -1,4 +1,3 @@
-
 <div class="modal fade" id="loginModal" tabindex="-1">
     <div class="modal-dialog modal-sm"> 
         <div class="modal-content" style="min-height: 550px;"> 
@@ -35,7 +34,7 @@
                 </form>
 
                 <div class="text-center mt-3">
-                    <a href="#" class="text-muted">Quên mật khẩu?</a>
+                    <a href="#" class="text-muted" data-bs-target="#forgotPasswordModal" data-bs-dismiss="modal" id="openForgotPassword">Quên mật khẩu?</a>
                 </div>
 
                 <div class="text-center mt-2">

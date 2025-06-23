@@ -2,14 +2,24 @@
 document.addEventListener("DOMContentLoaded", function () {
     var loginModalEl = document.getElementById("loginModal");
     var registerModalEl = document.getElementById("registerModal");
+    var forgotModalEl = document.getElementById("forgotPasswordModal");
 
     var loginModal = new bootstrap.Modal(loginModalEl, { backdrop: "static" });
     var registerModal = new bootstrap.Modal(registerModalEl, { backdrop: "static" });
+    var forgotModal = new bootstrap.Modal(forgotModalEl, { backdrop: "static" });
 
     // Chuyển từ đăng nhập sang đăng ký
     document.getElementById("openRegister").addEventListener("click", function () {
         loginModalEl.addEventListener("hidden.bs.modal", function () {
             registerModal.show();
+        }, { once: true });
+        loginModal.hide();
+    });
+
+    // Chuyển từ đăng nhập sang quên mật khẩu
+    document.getElementById("openForgotPassword").addEventListener("click", function () {
+        loginModalEl.addEventListener("hidden.bs.modal", function () {
+            forgotModal.show();
         }, { once: true });
         loginModal.hide();
     });
