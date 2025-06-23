@@ -8,23 +8,6 @@
 }
 
 .ticket-card img {
-    width: 40%;
-    height: 100%;
-    object-fit: cover;
-    margin-right: 20px;
-    border-radius: 8px;
-}
-
-.ticket-card {
-    display: flex;
-    align-items: center;
-    border: 1px solid #ccc;
-    margin-bottom: 16px;
-    padding: 12px;
-    border-radius: 10px;
-}
-
-.ticket-card img {
     width: 35%;
     height: 100%;
     object-fit: cover;

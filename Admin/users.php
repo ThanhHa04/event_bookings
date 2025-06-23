@@ -1,16 +1,27 @@
 <?php
 session_start();
+require_once "../includes/db_connect.php";
+
 if (!isset($_SESSION['admin_id'])) {
     header("Location: login.php");
     exit();
 }
+$search = $_GET['search'] ?? '';
 
-// Lấy danh sách user
+$where = "1=1";
+$params = [];
 
-require_once "../includes/db_connect.php";
+if ($search !== '') {
+    $where .= " AND (user_id LIKE ? OR fullname LIKE ?)";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+}
 
-$stmt = $pdo->query("SELECT user_id, fullname, email, email_verified_at FROM users ORDER BY user_id DESC");
+$stmt = $pdo->prepare("SELECT user_id, fullname, email FROM users WHERE $where ORDER BY user_id DESC");
+$stmt->execute($params);
 $users = $stmt->fetchAll();
+
+
 ?>
 
 <!DOCTYPE html>
@@ -28,13 +39,18 @@ $users = $stmt->fetchAll();
 
 <div class="container mt-4">
     <h2 class="mb-4"><i class="bi bi-person"></i> Quản lý tài khoản</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3 w-100">
+        <form method="GET" class="d-flex gap-2 w-100">
+            <input type="text" name="search" value="<?= htmlspecialchars($_GET['search'] ?? '') ?>" class="form-control" placeholder="Tìm theo ID hoặc tên người dùng">
+            <button class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
     <table class="table table-bordered table-hover table-striped">
         <thead class="table-dark">
         <tr>
             <th>User id</th>
             <th>Họ tên</th>
             <th>Email</th>
-            <th>Xác minh</th>
             <th class="text-center">Thao tác</th>
         </tr>
         </thead>
@@ -44,11 +60,7 @@ $users = $stmt->fetchAll();
                 <td><?= htmlspecialchars($user['user_id']) ?></td>
                 <td><?= htmlspecialchars($user['fullname']) ?></td>
                 <td><?= htmlspecialchars($user['email']) ?></td>
-                <td>
-                    <?= !empty($user['email_verified_at']) 
-                        ? date('d/m/Y', strtotime($user['email_verified_at']))
-                        : '<span class="text-danger">Chưa xác minh</span>' ?>
-                </td>
+                
                 <td class="text-center">
                     <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal_<?= $user['user_id'] ?>">
                         <i class="bi bi-pencil"></i>
@@ -76,10 +88,6 @@ $users = $stmt->fetchAll();
                                 <div class="mb-3">
                                     <label class="form-label">Email</label>
                                     <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email']) ?>" required>
-                                </div>
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" name="verified" id="verified_<?= $user['user_id'] ?>" <?= !empty($user['email_verified_at']) ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="verified_<?= $user['user_id'] ?>">Email đã xác minh</label>
                                 </div>
                             </div>
                             <div class="modal-footer">
