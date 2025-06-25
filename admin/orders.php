@@ -77,7 +77,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                               <td><?= htmlspecialchars($order['pStatus']) ?></td>
                               <td>
                                   <a href="?order_id=<?= $order['order_id'] ?>" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i> Xem
+                                    <i class="bi bi-eye"></i> 
                                 </a>
                               </td>
                           </tr>
